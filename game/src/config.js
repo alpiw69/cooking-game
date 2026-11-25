@@ -1,9 +1,9 @@
-// config.js — every tunable fact of Sugar Rush Parlor lives here:
+// config.js — every tunable fact of Sugar Rush 2099 lives here:
 // the desserts, what each one needs, what it pays, and the pace of the day.
 // One file, one job: numbers and names, no drawing, no input.
 
-export const GAME_TITLE = 'SUGAR RUSH PARLOR';
-export const GAME_SUBTITLE = 'ice cream, candy & cake — served with a smile';
+export const GAME_TITLE = 'SUGAR RUSH 2099';
+export const GAME_SUBTITLE = 'a neon dessert lab — scoops, boba & cake from the future';
 
 export const VIEW_W = 1280;
 export const VIEW_H = 720;
@@ -31,38 +31,38 @@ export const INGREDIENTS = {
 // Bins along the bottom counter, in the order the keys 1..6 tap them.
 export const BIN_ORDER = ['telur', 'kecap', 'cabai', 'bawang', 'es', 'gula'];
 
-// Dessert stations, left side of the parlor. The kind ids (wok/grill/pot)
+// Dessert stations, left side of the lab. The kind ids (wok/grill/pot)
 // are the same three the world rules use; only the names changed.
 export const STATIONS = [
-  { id: 'wok',   name: 'FREEZER', kind: 'wok',   label: 'scoops',  x: 36,  y: 218, w: 150, h: 128 },
-  { id: 'grill', name: 'OVEN',    kind: 'grill', label: 'cake',    x: 36,  y: 358, w: 150, h: 128 },
-  { id: 'pot',   name: 'BLENDER', kind: 'pot',   label: 'shakes',  x: 36,  y: 498, w: 150, h: 128 },
+  { id: 'wok',   name: 'CRYO BAR', kind: 'wok',   label: 'scoops',  x: 36,  y: 218, w: 150, h: 128 },
+  { id: 'grill', name: 'HOLO OVEN', kind: 'grill', label: 'cake',    x: 36,  y: 358, w: 150, h: 128 },
+  { id: 'pot',   name: 'TURBO BLENDER', kind: 'pot',   label: 'shakes',  x: 36,  y: 498, w: 150, h: 128 },
 ];
 
 export const DISHES = {
   nasgor: {
-    name: 'Rainbow Sundae', short: 'SUNDAE', needs: ['nasi', 'telur', 'kecap', 'cabai'],
-    coins: 12, color: '#ff6fa5', patience: 40,
+    name: 'Galaxy Sundae', short: 'GALAXY', needs: ['nasi', 'telur', 'kecap', 'cabai'],
+    coins: 12, color: '#ff7ad9', patience: 40,
   },
   miegor: {
-    name: 'Berry Sundae', short: 'BERRY', needs: ['mie', 'telur', 'kecap', 'bawang'],
-    coins: 11, color: '#d96a8f', patience: 40,
+    name: 'Neon Berry Sundae', short: 'NEON', needs: ['mie', 'telur', 'kecap', 'bawang'],
+    coins: 11, color: '#ff9ecf', patience: 40,
   },
   sate: {
-    name: 'Choco Brownie', short: 'BROWNIE', needs: ['ayam', 'kecap', 'cabai'],
-    coins: 9, color: '#8a5a3b', patience: 34,
+    name: 'Cosmo Brownie', short: 'COSMO', needs: ['ayam', 'kecap', 'cabai'],
+    coins: 9, color: '#e8a06c', patience: 34,
   },
   esteh: {
-    name: 'Strawberry Shake', short: 'SHAKE', needs: ['teh', 'es', 'gula'],
-    coins: 7, color: '#e5488f', patience: 30,
+    name: 'Boba Milkshake', short: 'BOBA', needs: ['teh', 'es', 'gula'],
+    coins: 7, color: '#ff6fa5', patience: 30,
   },
   cupcake: {
-    name: 'Candy Cupcake', short: 'CUPCAKE', needs: ['ayam', 'telur', 'gula'],
-    coins: 10, color: '#ff8fb8', patience: 36,
+    name: 'Neon Cupcake', short: 'CUPCAKE', needs: ['ayam', 'telur', 'gula'],
+    coins: 10, color: '#ffb3d9', patience: 36,
   },
   parfait: {
-    name: 'Mint Parfait', short: 'PARFAIT', needs: ['mie', 'bawang', 'es', 'kecap'],
-    coins: 13, color: '#7ec8a9', patience: 42,
+    name: 'Holo Parfait', short: 'HOLO', needs: ['mie', 'bawang', 'es', 'kecap'],
+    coins: 13, color: '#7ef0c8', patience: 42,
   },
 };
 
@@ -95,22 +95,23 @@ export const COMBO_MAX = 2.0;
 // Retuned for the new economy (golden tickets + perfect bonuses pay more).
 export const STAR_COINS = [300, 550, 850];
 
-// Palette: a pink dessert parlor — pastel pink, cream, mint, strawberry red.
-// Panels are light, so the text ink is a deep plum that reads on white.
+// Palette: a neon dessert lab in 2099 — deep violet night, hot pink neon,
+// cyan holograms, chrome. Panels are dark glass, so the text ink is a
+// pale pink-white that glows on top of them.
 export const COLORS = {
-  night: '#ffe3ee',
-  night2: '#fff6ec',
-  board: '#fffafc',
-  boardEdge: '#ff8fb8',
-  chalk: '#4a2440',
-  counter: '#f7c9d9',
-  counterTop: '#ff8fb8',
-  plate: '#ffffff',
-  plateEdge: '#ff8fb8',
-  ink: '#4a2440',
-  good: '#2f9e6e',
-  warn: '#ff9d45',
-  bad: '#e5484d',
-  gold: '#e5488f',
-  steam: 'rgba(255,255,255,0.55)',
+  night: '#150826',
+  night2: '#3d1157',
+  board: '#2a1250',
+  boardEdge: '#ff5ec4',
+  chalk: '#ffe9f6',
+  counter: '#1c0a38',
+  counterTop: '#ff5ec4',
+  plate: '#f4f0ff',
+  plateEdge: '#4de3ff',
+  ink: '#ffe9f6',
+  good: '#37e08b',
+  warn: '#ffb020',
+  bad: '#ff5d73',
+  gold: '#ffd166',
+  steam: 'rgba(255,255,255,0.5)',
 };

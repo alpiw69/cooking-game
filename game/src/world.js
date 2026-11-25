@@ -214,7 +214,7 @@ export function tick(world, dt) {
       world.plate = new Set(world.orders[world.selectedOrder]?.added ?? []);
       if (world.missed >= MAX_MISSED) {
         world.state = 'over';
-        world.overReason = '3 customers left angry — the parlor closed early.';
+        world.overReason = '3 customers left angry — the lab closed early.';
         return;
       }
     }
@@ -230,6 +230,6 @@ export function tick(world, dt) {
 
   if (world.timeLeft <= 0) {
     world.state = 'over';
-    world.overReason = 'Shift over — the parlor lights go out.';
+    world.overReason = 'Shift over — the lab powers down.';
   }
 }

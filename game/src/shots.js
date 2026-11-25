@@ -105,7 +105,7 @@ export function stageShot(name, seed) {
       tick(world, STEP);
     }
     world.state = 'over';
-    if (!world.overReason) world.overReason = 'Shift over — the parlor lights go out.';
+    if (!world.overReason) world.overReason = 'Shift over — the lab powers down.';
     return world;
   }
   const target = name === 'rush' ? SHIFT_SECONDS - 24 : 55;

@@ -68,16 +68,16 @@ function runGame() {
     }
     fitCanvas();
     render(ctx, world, now / 1000);
-    if (world.state === 'title') announce('Sugar Rush Parlor. Click Open the Parlor or press Enter to start.');
+    if (world.state === 'title') announce('Sugar Rush 2099. Click Enter the Lab or press Enter to start.');
     else if (world.state === 'playing') announce('Playing. ' + Math.ceil(world.timeLeft) + ' seconds left, ' + world.coins + ' coins.');
-    else announce('Parlor closed. ' + world.coins + ' coins, ' + world.served + ' orders served.');
+    else announce('Lab closed. ' + world.coins + ' coins, ' + world.served + ' orders served.');
   }
 
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) accumulator = 0;
   });
   canvas.addEventListener('pointerdown', () => sfx.unlock(), { once: true });
-  announce('Sugar Rush Parlor. Click Open the Parlor or press Enter to start.');
+  announce('Sugar Rush 2099. Click Enter the Lab or press Enter to start.');
   requestAnimationFrame(frame);
 }
 
