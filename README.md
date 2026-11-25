@@ -1,8 +1,8 @@
 # Sugar Rush Parlor
 
-![make.fun best-cooking-game-20261125-0137](https://img.shields.io/badge/make.fun-best--cooking--game--20261125--0137-pink)
-![rank](https://img.shields.io/badge/rank-coming_soon-blue)
-![reward](https://img.shields.io/badge/pool-%24250_USDC-green)
+[![make.fun](https://make.fun/badge/best-cooking-game-20261125-0137.svg)](https://make.fun/bounty/best-cooking-game-20261125-0137)
+[![rank](https://make.fun/badge/best-cooking-game-20261125-0137/alpiw69/cooking-game/rank.svg)](https://make.fun/bounty/best-cooking-game-20261125-0137)
+[![reward](https://make.fun/badge/best-cooking-game-20261125-0137/alpiw69/cooking-game/reward.svg)](https://make.fun/bounty/best-cooking-game-20261125-0137)
 
 A pink dessert parlor game for the [Make the best cooking game](https://make.fun/bounty/best-cooking-game-20261125-0137) bounty on make.fun.
 
@@ -13,7 +13,7 @@ You run Sugar Rush Parlor — a pink dessert shop with a candy-striped awning, l
 - 6 desserts: Rainbow Sundae, Berry Sundae, Choco Brownie, Strawberry Shake, Candy Cupcake, Mint Parfait
 - Orders, patience, combo multiplier, rush hour, win/lose shift of 150 seconds
 - Golden tickets: a rare order (gold frame, ★ GOLDEN x3) worth 3x coins — and it can stack with the PERFECT bonus
-- PERFECT serve: serving while patience is still above 70% pays +50% coins
+- PERFECT serve: serving while patience is still at or above 85% pays +50% coins
 - Mouse + keyboard (bins 1–6, stations F/O/B, Tab to switch ticket, Space to serve)
 - All art drawn in code on canvas, all sounds synthesized with WebAudio — no files loaded from the network
 
