@@ -1,47 +1,47 @@
-# Dapur Kerajaan
+# Sugar Rush Parlor
 
 ![make.fun best-cooking-game-20261125-0137](https://img.shields.io/badge/make.fun-best--cooking--game--20261125--0137-pink)
 ![rank](https://img.shields.io/badge/rank-coming_soon-blue)
 ![reward](https://img.shields.io/badge/pool-%24250_USDC-green)
 
-Game dapur istana untuk bounty [Make the best cooking game](https://make.fun/bounty/best-cooking-game-20261125-0137) di make.fun.
+A pink dessert parlor game for the [Make the best cooking game](https://make.fun/bounty/best-cooking-game-20261125-0137) bounty on make.fun.
 
-## Gamenya
+## The game
 
-Kamu yang menjalankan dapur istana — Dapur Kerajaan — memasak untuk raja dan tamu kerajaannya di bawah lampu gantung kristal. Pesanan masuk ke papan atas lengkap dengan bar kesabaran. Setiap hidangan itu rute kecil keliling dapur: nyalakan wok untuk nasi atau mie, arang untuk ayam, pot untuk teh, sambil mengetuk bin bahan instan (telur, kecap, cabai, bawang, es, gula). Kalau piring sudah lengkap, tekan SAJIKAN sebelum tamu pergi. Tiga tamu pulang marah dan dapur tutup lebih awal; 30 detik terakhir adalah JAM RAMAI — jam sibuk, koin dobel.
+You run Sugar Rush Parlor — a pink dessert shop with a candy-striped awning, lollipops in the window, and a line of customers who all want something sweet. Orders land on the board with a patience bar. Each dessert is a little route through the parlor: scoop from the FREEZER, bake in the OVEN, blend in the BLENDER, while you tap the instant topping bins (sprinkles, choc sauce, cherry, wafer, ice, sugar). When the plate is complete, hit SERVE before the customer walks away. Three walkaways and the parlor closes early; the last 30 seconds are RUSH HOUR — double coins.
 
-- 4 hidangan: Nasi Goreng Istana, Mie Goreng Bangsawan, Sate Ayam Kerajaan, Es Teh Permaisuri
-- Pesanan, kesabaran, pengali combo, jam ramai, shift menang/kalah 150 detik
-- Mouse + keyboard (bin 1–6, stasiun W/G/T, Tab untuk ganti tiket, Spasi untuk menyajikan)
-- Semua gambar digambar dengan kode di canvas, semua suara dibuat dengan WebAudio — tidak ada file yang dimuat dari internet
+- 4 desserts: Rainbow Sundae, Berry Sundae, Choco Brownie, Strawberry Shake
+- Orders, patience, combo multiplier, rush hour, win/lose shift of 150 seconds
+- Mouse + keyboard (bins 1–6, stations F/O/B, Tab to switch ticket, Space to serve)
+- All art drawn in code on canvas, all sounds synthesized with WebAudio — no files loaded from the network
 
-## Cara main
+## Play it
 
 ```sh
 node serve.ts
-# buka http://localhost:8080 di desktop Chrome
+# open http://localhost:8080 in desktop Chrome
 ```
 
-## Penyerahan
+## Hand in
 
 ```sh
 mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 ```
 
-`main.ts` menyalin `game/` dan `screenshots/` ke direktori output dan menulis `dossier.json` dengan `vendor/makefun-game.ts` yang disertakan.
+`main.ts` copies `game/` and `screenshots/` to the output directory and writes `dossier.json` with the vendored `vendor/makefun-game.ts`.
 
-## Susunan file
+## Layout
 
-- `main.ts` — program penyerahan (Node 22)
-- `vendor/makefun-game.ts` — library dossier dari kit, tidak diubah
-- `game/index.html` — dibuka di desktop Chrome, langsung main
-- `game/src/config.js` — hidangan, bahan, pengaturan, palet
-- `game/src/random.js` — angka acak berbibit untuk screenshot yang deterministik
-- `game/src/world.js` — pesanan, masak, sajikan, skor, jam
-- `game/src/layout.js` — semua kotak yang bisa diklik di panggung
-- `game/src/input.js` — mouse dan keyboard
-- `game/src/render.js` — semua gambar canvas
-- `game/src/audio.js` — suara sintetis
-- `game/src/shots.js` — adegan screenshot deterministik (`?shot=play|rush|start|end&seed=1`)
-- `game/src/main.js` — boot dan game loop
-- `screenshots/` — 4 render asli dari kode game sendiri
+- `main.ts` — the hand-in program (Node 22)
+- `vendor/makefun-game.ts` — the kit's dossier library, unchanged
+- `game/index.html` — opens in desktop Chrome and plays
+- `game/src/config.js` — desserts, ingredients, tuning, palette
+- `game/src/random.js` — seeded random for deterministic screenshots
+- `game/src/world.js` — orders, cooking, serving, scoring, the clock
+- `game/src/layout.js` — every clickable rectangle on the stage
+- `game/src/input.js` — mouse and keyboard
+- `game/src/render.js` — all canvas drawing
+- `game/src/audio.js` — synthesized sounds
+- `game/src/shots.js` — deterministic screenshot scenes (`?shot=play|rush|start|end&seed=1`)
+- `game/src/main.js` — boot and the game loop
+- `screenshots/` — 4 real renders of the game's own code
