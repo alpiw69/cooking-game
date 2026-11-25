@@ -74,7 +74,7 @@ export function stageShot(name, seed) {
       tick(world, STEP);
     }
     world.state = 'over';
-    if (!world.overReason) world.overReason = 'Shift selesai — lampu warung dimatikan.';
+    if (!world.overReason) world.overReason = 'Shift selesai — lampu istana dipadamkan.';
     return world;
   }
   const target = name === 'rush' ? SHIFT_SECONDS - 24 : 55;

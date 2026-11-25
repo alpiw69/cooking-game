@@ -68,16 +68,16 @@ function runGame() {
     }
     fitCanvas();
     render(ctx, world, now / 1000);
-    if (world.state === 'title') announce('Warung Tengah Malam. Klik Buka Warung atau tekan Enter untuk mulai.');
+    if (world.state === 'title') announce('Dapur Kerajaan. Klik Buka Dapur atau tekan Enter untuk mulai.');
     else if (world.state === 'playing') announce('Bermain. Sisa waktu ' + Math.ceil(world.timeLeft) + ' detik, koin ' + world.coins + '.');
-    else announce('Warung tutup. Koin ' + world.coins + ', pesanan disajikan ' + world.served + '.');
+    else announce('Dapur tutup. Koin ' + world.coins + ', pesanan disajikan ' + world.served + '.');
   }
 
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) accumulator = 0;
   });
   canvas.addEventListener('pointerdown', () => sfx.unlock(), { once: true });
-  announce('Warung Tengah Malam. Klik Buka Warung atau tekan Enter untuk mulai.');
+  announce('Dapur Kerajaan. Klik Buka Dapur atau tekan Enter untuk mulai.');
   requestAnimationFrame(frame);
 }
 

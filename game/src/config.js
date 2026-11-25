@@ -1,9 +1,9 @@
-// config.js — every tunable fact of Warung Tengah Malam lives here:
+// config.js — every tunable fact of Dapur Kerajaan lives here:
 // the dishes, what each one needs, what it pays, and the pace of the night.
 // One file, one job: numbers and names, no drawing, no input.
 
-export const GAME_TITLE = 'WARUNG TENGAH MALAM';
-export const GAME_SUBTITLE = 'fry rice, grill satay, pour es teh — one night, no customer left hungry';
+export const GAME_TITLE = 'DAPUR KERAJAAN';
+export const GAME_SUBTITLE = 'hidangan istana untuk raja — satu malam, tak ada tamu yang pulang lapar';
 
 export const VIEW_W = 1280;
 export const VIEW_H = 720;
@@ -39,19 +39,19 @@ export const STATIONS = [
 
 export const DISHES = {
   nasgor: {
-    name: 'Nasi Goreng', short: 'NASGOR', needs: ['nasi', 'telur', 'kecap', 'cabai'],
+    name: 'Nasi Goreng Istana', short: 'NASGOR', needs: ['nasi', 'telur', 'kecap', 'cabai'],
     coins: 12, color: '#f7cf6b', patience: 40,
   },
   miegor: {
-    name: 'Mie Goreng', short: 'MIEGOR', needs: ['mie', 'telur', 'kecap', 'bawang'],
+    name: 'Mie Goreng Bangsawan', short: 'MIEGOR', needs: ['mie', 'telur', 'kecap', 'bawang'],
     coins: 11, color: '#f7a94f', patience: 40,
   },
   sate: {
-    name: 'Sate Ayam', short: 'SATE', needs: ['ayam', 'kecap', 'cabai'],
+    name: 'Sate Ayam Kerajaan', short: 'SATE', needs: ['ayam', 'kecap', 'cabai'],
     coins: 9, color: '#e8a06a', patience: 34,
   },
   esteh: {
-    name: 'Es Teh Manis', short: 'ES TEH', needs: ['teh', 'es', 'gula'],
+    name: 'Es Teh Permaisuri', short: 'ES TEH', needs: ['teh', 'es', 'gula'],
     coins: 7, color: '#b4762e', patience: 30,
   },
 };
@@ -71,18 +71,18 @@ export const COMBO_MAX = 2.0;
 // Stars on the results screen, by coins earned in the shift.
 export const STAR_COINS = [120, 220, 320];
 
-// Palette: a night market — deep indigo night, warm lantern amber.
+// Palette: a royal palace at night — deep purple, burgundy velvet, gold.
 export const COLORS = {
-  night: '#141b33',
-  night2: '#1c2547',
-  board: '#232c4d',
-  boardEdge: '#3a4a7d',
-  chalk: '#f2ead8',
-  counter: '#7a4e2d',
-  counterTop: '#9c6a3e',
-  plate: '#f4f1e6',
-  plateEdge: '#c9c2ab',
-  ink: '#1d2333',
+  night: '#1c0f33',
+  night2: '#2a1848',
+  board: '#2e1c46',
+  boardEdge: '#a8853f',
+  chalk: '#f7ecd2',
+  counter: '#4a2418',
+  counterTop: '#7a4a28',
+  plate: '#f8ecc0',
+  plateEdge: '#d4af37',
+  ink: '#241640',
   good: '#57c785',
   warn: '#ffb020',
   bad: '#e5484d',

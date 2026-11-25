@@ -60,11 +60,11 @@ export function startShift(world) {
 }
 
 const CUSTOMERS = [
-  { name: 'Pakde', skin: '#e8b88a', shirt: '#3f7d5a' },
-  { name: 'Mbak', skin: '#f0c8a0', shirt: '#c65b7c' },
-  { name: 'Mas', skin: '#d9a06b', shirt: '#4a6fa5' },
-  { name: 'Bu', skin: '#eab98c', shirt: '#8a5fb0' },
-  { name: 'Kak', skin: '#f2d0a8', shirt: '#b07830' },
+  { name: 'Raja', skin: '#e8b88a', shirt: '#7a1f2b' },
+  { name: 'Ratu', skin: '#f0c8a0', shirt: '#5b2a86' },
+  { name: 'Pangeran', skin: '#d9a06b', shirt: '#1f4d6b' },
+  { name: 'Putri', skin: '#eab98c', shirt: '#8a5fb0' },
+  { name: 'Adipati', skin: '#f2d0a8', shirt: '#b07830' },
 ];
 
 export function spawnOrder(world) {
@@ -189,7 +189,7 @@ export function tick(world, dt) {
       world.plate = new Set(world.orders[world.selectedOrder]?.added ?? []);
       if (world.missed >= MAX_MISSED) {
         world.state = 'over';
-        world.overReason = '3 pelanggan pulang marah — warung tutup lebih awal.';
+        world.overReason = '3 tamu pulang marah — dapur tutup lebih awal.';
         return;
       }
     }
@@ -205,6 +205,6 @@ export function tick(world, dt) {
 
   if (world.timeLeft <= 0) {
     world.state = 'over';
-    world.overReason = 'Shift selesai — lampu warung dimatikan.';
+    world.overReason = 'Shift selesai — lampu istana dipadamkan.';
   }
 }

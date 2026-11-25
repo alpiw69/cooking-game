@@ -1,7 +1,8 @@
-// render.js — every pixel of Warung Tengah Malam, drawn with canvas shapes.
-// No images, no fonts from the network: flat vector food, a night market
-// palette, and labels big enough to read when the screenshot is shrunk.
-// render(ctx, world, t) draws one frame; t is animation time in seconds.
+// render.js — every pixel of Dapur Kerajaan, drawn with canvas shapes.
+// No images, no fonts from the network: flat vector food, a royal purple
+// and gold palette, and labels big enough to read when the screenshot is
+// shrunk. render(ctx, world, t) draws one frame; t is animation time in
+// seconds.
 
 import { COLORS, DISHES, INGREDIENTS, STATIONS, BIN_ORDER, SHIFT_SECONDS, MAX_MISSED, STAR_COINS, GAME_TITLE, GAME_SUBTITLE } from './config.js';
 import { ticketRect, stationRect, plateRect, serveRect, serveReadyRect, binRect, startButtonRect, againButtonRect } from './layout.js';
@@ -23,6 +24,47 @@ function text(ctx, s, x, y, size, color, weight, align) {
   ctx.textAlign = align || 'left';
   ctx.textBaseline = 'middle';
   ctx.fillText(s, x, y);
+}
+
+// Elegant serif for royal headings and dish names.
+function textSerif(ctx, s, x, y, size, color, weight, align) {
+  ctx.fillStyle = color;
+  ctx.font = (weight || '700') + ' ' + size + 'px Georgia, "Times New Roman", serif';
+  ctx.textAlign = align || 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(s, x, y);
+}
+
+// A small gold crown, worn by every royal guest and over the title.
+function drawCrown(ctx, x, y, w, h) {
+  ctx.fillStyle = '#d4af37';
+  ctx.strokeStyle = '#8a6d2f';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x - w / 2, y + h / 2);
+  ctx.lineTo(x - w / 2, y - h * 0.1);
+  ctx.lineTo(x - w * 0.22, y + h * 0.18);
+  ctx.lineTo(x, y - h / 2);
+  ctx.lineTo(x + w * 0.22, y + h * 0.18);
+  ctx.lineTo(x + w / 2, y - h * 0.1);
+  ctx.lineTo(x + w / 2, y + h / 2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#e5484d';
+  ctx.beginPath(); ctx.arc(x, y + h * 0.05, w * 0.07, 0, Math.PI * 2); ctx.fill();
+}
+
+// Shrink a label just enough to fit a max width, never below 10px.
+function fitSize(ctx, s, maxW, startSize, weight, serif) {
+  let size = startSize;
+  const family = serif ? 'Georgia, "Times New Roman", serif' : 'system-ui, "Segoe UI", sans-serif';
+  ctx.font = (weight || '700') + ' ' + size + 'px ' + family;
+  while (size > 10 && ctx.measureText(s).width > maxW) {
+    size -= 1;
+    ctx.font = (weight || '700') + ' ' + size + 'px ' + family;
+  }
+  return size;
 }
 
 function fmtTime(secs) {
@@ -137,6 +179,8 @@ function drawFace(ctx, customer, x, y, r) {
   ctx.beginPath(); ctx.arc(x + r * 0.35, y - r * 0.1, r * 0.12, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = '#1d2333'; ctx.lineWidth = Math.max(2, r * 0.1); ctx.lineCap = 'round';
   ctx.beginPath(); ctx.arc(x, y + r * 0.15, r * 0.4, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+  // every guest of the palace wears a little gold crown
+  drawCrown(ctx, x, y - r * 1.05, r * 1.1, r * 0.55);
   ctx.restore();
 }
 
@@ -148,44 +192,94 @@ function drawPatienceBar(ctx, x, y, w, frac) {
   if (frac > 0.02) { rr(ctx, x, y, Math.max(8, w * frac), 10, 5); ctx.fill(); }
 }
 
-// ---- the kitchen ----
+// ---- the palace dining hall ----
 function drawBackground(ctx, t) {
   ctx.fillStyle = COLORS.night;
   ctx.fillRect(0, 0, 1280, 720);
   const g = ctx.createLinearGradient(0, 0, 0, 720);
-  g.addColorStop(0, '#10162c');
+  g.addColorStop(0, '#150a28');
   g.addColorStop(0.55, COLORS.night);
-  g.addColorStop(1, '#241a2e');
+  g.addColorStop(1, '#2b1226');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, 1280, 720);
-  // stars
-  ctx.fillStyle = 'rgba(255,255,255,0.5)';
-  for (let i = 0; i < 40; i++) {
-    const sx = (i * 317) % 1280, sy = (i * 173) % 130 + 8;
-    ctx.globalAlpha = 0.25 + 0.35 * Math.abs(Math.sin(t * 0.7 + i));
-    ctx.fillRect(sx, sy, 2, 2);
-  }
-  ctx.globalAlpha = 1;
-  // paper lanterns with warm glow
-  for (const [lx, ly, lr] of [[180, 40, 26], [640, 30, 32], [1100, 42, 26]]) {
-    const glow = ctx.createRadialGradient(lx, ly, 4, lx, ly, lr * 3.2);
-    glow.addColorStop(0, 'rgba(255,190,90,0.5)');
-    glow.addColorStop(1, 'rgba(255,190,90,0)');
-    ctx.fillStyle = glow;
-    ctx.beginPath(); ctx.arc(lx, ly, lr * 3.2, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#ff9d45';
-    ctx.beginPath(); ctx.ellipse(lx, ly, lr * 0.62, lr, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#d96f1e'; ctx.lineWidth = 2;
-    for (const dy of [-0.5, 0, 0.5]) {
-      ctx.beginPath(); ctx.ellipse(lx, ly + dy * lr, lr * 0.6, lr * 0.16, 0, 0, Math.PI); ctx.stroke();
+  // tall arched windows with the night sky outside
+  for (const wx of [300, 980]) {
+    ctx.fillStyle = '#0e0820';
+    ctx.beginPath();
+    ctx.moveTo(wx - 70, 200); ctx.lineTo(wx - 70, 60);
+    ctx.quadraticCurveTo(wx, -10, wx + 70, 60);
+    ctx.lineTo(wx + 70, 200);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#a8853f'; ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(168,133,63,0.6)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(wx, 30); ctx.lineTo(wx, 200); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(wx - 70, 120); ctx.lineTo(wx + 70, 120); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    for (const [sx, sy] of [[-38, 70], [26, 52], [8, 92], [-12, 150]]) {
+      ctx.fillRect(wx + sx, sy, 2, 2);
     }
   }
-  // tiled floor at the bottom
-  ctx.fillStyle = '#2a2118';
+  // crystal chandeliers hanging below the top bar, flanking the order board
+  for (const [cx, cy] of [[170, 116], [1110, 116]]) {
+    const glow = ctx.createRadialGradient(cx, cy, 4, cx, cy, 100);
+    glow.addColorStop(0, 'rgba(255,200,100,0.4)');
+    glow.addColorStop(1, 'rgba(255,200,100,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(cx, cy, 100, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(cx, 64); ctx.lineTo(cx, cy - 18); ctx.stroke();
+    ctx.fillStyle = '#d4af37';
+    ctx.beginPath(); ctx.ellipse(cx, cy, 42, 9, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx, cy + 11, 27, 6, 0, 0, Math.PI * 2); ctx.fill();
+    for (let i = -2; i <= 2; i++) {
+      const fx = cx + i * 16, fy = cy - 15 - Math.abs(i) * -4;
+      const flick = 0.8 + 0.2 * Math.sin(t * 8 + i * 2.1 + cx);
+      ctx.fillStyle = 'rgba(255,180,60,' + flick + ')';
+      ctx.beginPath(); ctx.ellipse(fx, fy, 3.5, 7, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#f7ecd2';
+      ctx.fillRect(fx - 2, fy + 4, 4, 8);
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    for (const [dx, dy] of [[-27, 2], [27, 2], [-13, 13], [13, 13]]) {
+      ctx.beginPath(); ctx.arc(cx + dx, cy + dy, 2.5, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  // red velvet curtains at both sides, tied back with gold cord
+  for (const side of [0, 1]) {
+    const x0 = side === 0 ? 0 : 1280;
+    const dir = side === 0 ? 1 : -1;
+    ctx.fillStyle = '#5e1220';
+    ctx.beginPath();
+    ctx.moveTo(x0, 0);
+    ctx.lineTo(x0 + dir * 92, 0);
+    ctx.quadraticCurveTo(x0 + dir * 46, 300, x0 + dir * 74, 636);
+    ctx.lineTo(x0, 636);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 2;
+    for (const fx of [18, 40, 62]) {
+      ctx.beginPath();
+      ctx.moveTo(x0 + dir * fx, 0);
+      ctx.quadraticCurveTo(x0 + dir * (fx - 8), 300, x0 + dir * (fx + 4), 636);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(x0 + dir * 8, 420);
+    ctx.quadraticCurveTo(x0 + dir * 58, 452, x0 + dir * 84, 420);
+    ctx.stroke();
+  }
+  // red carpet with gold borders along the bottom
+  ctx.fillStyle = '#6e1423';
   ctx.fillRect(0, 636, 1280, 84);
-  ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1;
-  for (let x = 0; x < 1280; x += 80) { ctx.beginPath(); ctx.moveTo(x, 636); ctx.lineTo(x, 720); ctx.stroke(); }
-  ctx.beginPath(); ctx.moveTo(0, 678); ctx.lineTo(1280, 678); ctx.stroke();
+  ctx.fillStyle = '#d4af37';
+  ctx.fillRect(0, 636, 1280, 4);
+  ctx.fillRect(0, 674, 1280, 3);
+  ctx.fillStyle = 'rgba(212,175,55,0.35)';
+  for (let x = 40; x < 1280; x += 160) {
+    ctx.save(); ctx.translate(x, 706); ctx.rotate(Math.PI / 4);
+    ctx.fillRect(-7, -7, 14, 14); ctx.restore();
+  }
 }
 
 function drawTopBar(ctx, world) {
@@ -193,8 +287,8 @@ function drawTopBar(ctx, world) {
   ctx.fillRect(0, 0, 1280, 64);
   ctx.fillStyle = COLORS.boardEdge;
   ctx.fillRect(0, 62, 1280, 2);
-  text(ctx, GAME_TITLE, 24, 24, 26, COLORS.gold, '800');
-  text(ctx, 'warung kaki lima • buka tengah malam', 24, 48, 13, COLORS.chalk, '400');
+  textSerif(ctx, GAME_TITLE, 24, 24, 26, COLORS.gold, '800');
+  text(ctx, 'dapur istana • hidangan untuk raja', 24, 48, 13, COLORS.chalk, '400');
   // timer, big and central
   const frac = world.timeLeft / SHIFT_SECONDS;
   const tc = frac > 0.5 ? COLORS.chalk : frac > 0.2 ? COLORS.warn : COLORS.bad;
@@ -215,7 +309,7 @@ function drawTopBar(ctx, world) {
     ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.arc(940 + i * 26, 26, 9, 0, Math.PI * 2); ctx.stroke();
   }
-  text(ctx, 'pelanggan pulang:', 930, 26, 12, COLORS.chalk, '400', 'right');
+  text(ctx, 'tamu pulang:', 930, 26, 12, COLORS.chalk, '400', 'right');
 }
 
 function drawOrderBoard(ctx, world, t) {
@@ -223,14 +317,17 @@ function drawOrderBoard(ctx, world, t) {
     const r = ticketRect(i);
     const dish = DISHES[order.dish];
     const selected = i === world.selectedOrder;
-    ctx.fillStyle = selected ? '#3a2f16' : COLORS.board;
+    ctx.fillStyle = selected ? '#4a3410' : COLORS.board;
     rr(ctx, r.x, r.y, r.w, r.h, 12); ctx.fill();
     ctx.strokeStyle = selected ? COLORS.gold : COLORS.boardEdge;
     ctx.lineWidth = selected ? 3 : 2;
     rr(ctx, r.x, r.y, r.w, r.h, 12); ctx.stroke();
+    // ornate inner gold hairline, like a framed royal decree
+    ctx.strokeStyle = 'rgba(212,175,55,0.55)'; ctx.lineWidth = 1;
+    rr(ctx, r.x + 5, r.y + 5, r.w - 10, r.h - 10, 8); ctx.stroke();
     drawFace(ctx, order.customer, r.x + 30, r.y + 30, 20);
     text(ctx, order.customer.name, r.x + 56, r.y + 22, 13, COLORS.chalk, '700');
-    text(ctx, dish.name, r.x + 56, r.y + 44, 17, dish.color, '800');
+    textSerif(ctx, dish.name, r.x + 56, r.y + 44, fitSize(ctx, dish.name, 186, 17, '800', true), dish.color, '800');
     // ingredient dots: filled = on the plate, outline = still missing
     let ix = r.x + 56;
     for (const need of dish.needs) {
@@ -259,10 +356,12 @@ function drawOrderBoard(ctx, world, t) {
 function drawStations(ctx, world, t) {
   for (const station of STATIONS) {
     const r = stationRect(station);
-    ctx.fillStyle = '#3d2c1e';
+    ctx.fillStyle = '#2e1a33';
     rr(ctx, r.x, r.y, r.w, r.h, 12); ctx.fill();
-    ctx.strokeStyle = '#5d4630'; ctx.lineWidth = 2;
+    ctx.strokeStyle = '#a8853f'; ctx.lineWidth = 2;
     rr(ctx, r.x, r.y, r.w, r.h, 12); ctx.stroke();
+    ctx.strokeStyle = 'rgba(212,175,55,0.45)'; ctx.lineWidth = 1;
+    rr(ctx, r.x + 5, r.y + 5, r.w - 10, r.h - 10, 8); ctx.stroke();
     const cook = world.cooks[station.id];
     text(ctx, station.name, r.x + r.w / 2, r.y + 16, 16, COLORS.chalk, '800', 'center');
     text(ctx, station.label, r.x + r.w / 2, r.y + 36, 11, 'rgba(242,234,216,0.6)', '400', 'center');
@@ -326,13 +425,15 @@ function drawPlate(ctx, world, t) {
   rr(ctx, p.x - 40, p.y + 150, p.w + 80, 96, 14); ctx.fill();
   ctx.fillStyle = COLORS.counterTop;
   rr(ctx, p.x - 40, p.y + 150, p.w + 80, 14, 7); ctx.fill();
-  // the plate
+  // the golden plate
   ctx.fillStyle = COLORS.plate;
   ctx.beginPath(); ctx.arc(p.cx, p.cy, p.r, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = COLORS.plateEdge; ctx.lineWidth = 4;
+  ctx.strokeStyle = COLORS.plateEdge; ctx.lineWidth = 5;
   ctx.beginPath(); ctx.arc(p.cx, p.cy, p.r, 0, Math.PI * 2); ctx.stroke();
-  ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.arc(p.cx, p.cy, p.r - 16, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = 'rgba(212,175,55,0.5)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(p.cx, p.cy, p.r - 14, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = 'rgba(0,0,0,0.10)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(p.cx, p.cy, p.r - 26, 0, Math.PI * 2); ctx.stroke();
 
   const order = world.orders[world.selectedOrder];
   if (order) {
@@ -395,15 +496,17 @@ function drawServe(ctx, world, t) {
   text(ctx, ready ? 'piring lengkap — klik / spasi' : 'lengkapi piring dulu', r.x + r.w / 2, r.y + 68, 13, 'rgba(255,255,255,0.8)', '400', 'center');
   // the ready plate on the serving counter
   const s = serveReadyRect();
-  ctx.fillStyle = '#3d2c1e';
+  ctx.fillStyle = '#2e1a33';
   rr(ctx, s.x, s.y, s.w, s.h, 12); ctx.fill();
+  ctx.strokeStyle = '#a8853f'; ctx.lineWidth = 2;
+  rr(ctx, s.x, s.y, s.w, s.h, 12); ctx.stroke();
   text(ctx, 'MEJA SAJI', s.x + s.w / 2, s.y + 18, 12, 'rgba(242,234,216,0.6)', '800', 'center');
   if (ready && order) {
     const dish = DISHES[order.dish];
     ctx.fillStyle = COLORS.plate;
     ctx.beginPath(); ctx.arc(s.x + 52, s.y + 74, 34, 0, Math.PI * 2); ctx.fill();
     drawIngredient(ctx, order.dish === 'esteh' ? 'teh' : order.dish === 'sate' ? 'ayam' : order.dish === 'miegor' ? 'mie' : 'nasi', s.x + 52, s.y + 74, 40);
-    text(ctx, dish.name, s.x + 100, s.y + 62, 16, dish.color, '800');
+    text(ctx, dish.name, s.x + 100, s.y + 62, fitSize(ctx, dish.name, 126, 15, '800'), dish.color, '800');
     text(ctx, dish.coins + ' koin' + (world.rush ? ' x2' : ''), s.x + 100, s.y + 86, 13, COLORS.gold, '700');
     if (world.rush) text(ctx, 'JAM RAMAI!', s.x + 100, s.y + 106, 12, '#ff9d45', '800');
   } else {
@@ -423,7 +526,7 @@ function drawBins(ctx, world) {
     const order = world.orders[world.selectedOrder];
     const needed = order ? order.needs.has(id) : false;
     const added = order ? order.added.has(id) : false;
-    ctx.fillStyle = needed ? '#4a3a1e' : '#2b3350';
+    ctx.fillStyle = needed ? '#5a451a' : '#2e2140';
     rr(ctx, r.x, r.y, r.w, r.h, 10); ctx.fill();
     ctx.strokeStyle = added ? COLORS.good : needed ? COLORS.gold : COLORS.boardEdge;
     ctx.lineWidth = added || needed ? 3 : 2;
@@ -463,8 +566,9 @@ function drawTitle(ctx, world, t) {
   drawBackground(ctx, t);
   ctx.fillStyle = 'rgba(10,14,28,0.55)';
   ctx.fillRect(0, 0, 1280, 720);
-  text(ctx, 'WARUNG', 640, 150, 84, COLORS.gold, '800', 'center');
-  text(ctx, 'TENGAH MALAM', 640, 232, 84, '#ff9d45', '800', 'center');
+  drawCrown(ctx, 640, 92, 120, 44);
+  textSerif(ctx, 'DAPUR', 640, 150, 84, COLORS.gold, '800', 'center');
+  textSerif(ctx, 'KERAJAAN', 640, 232, 84, '#ff9d45', '800', 'center');
   text(ctx, GAME_SUBTITLE, 640, 292, 20, COLORS.chalk, '400', 'center');
   // a little preview plate of the four dishes
   const dishes = ['nasgor', 'miegor', 'sate', 'esteh'];
@@ -474,18 +578,18 @@ function drawTitle(ctx, world, t) {
     ctx.beginPath(); ctx.arc(x, 380, 52, 0, Math.PI * 2); ctx.fill();
     const dish = DISHES[d];
     drawIngredient(ctx, dish.needs[0], x, 380, 56);
-    text(ctx, dish.name, x, 452, 15, dish.color, '800', 'center');
+    textSerif(ctx, dish.name, x, 452, 15, dish.color, '800', 'center');
     text(ctx, dish.coins + ' koin', x, 474, 13, COLORS.gold, '400', 'center');
   });
   text(ctx, 'Pesanan datang di papan atas. Klik bahan untuk meracik, masak di wok / arang / pot,', 640, 496, 16, COLORS.chalk, '400', 'center');
-  text(ctx, 'lalu SAJIKAN sebelum pelanggan kehabisan sabar. 3 pelanggan pulang = warung tutup.', 640, 520, 16, COLORS.chalk, '400', 'center');
+  text(ctx, 'lalu SAJIKAN sebelum tamu kehabisan sabar. 3 tamu pulang = dapur tutup.', 640, 520, 16, COLORS.chalk, '400', 'center');
   const b = startButtonRect();
   const pulse = 0.9 + 0.1 * Math.sin(t * 4);
   ctx.save(); ctx.globalAlpha = pulse;
   ctx.fillStyle = COLORS.good;
   rr(ctx, b.x, b.y, b.w, b.h, 14); ctx.fill();
   ctx.restore();
-  text(ctx, 'BUKA WARUNG', b.x + b.w / 2, b.y + b.h / 2, 30, '#ffffff', '800', 'center');
+  text(ctx, 'BUKA DAPUR', b.x + b.w / 2, b.y + b.h / 2, 30, '#ffffff', '800', 'center');
   text(ctx, 'klik tombol atau tekan Enter • mouse + keyboard (1-6, spasi, Tab)', 640, 640, 13, 'rgba(242,234,216,0.6)', '400', 'center');
 }
 
@@ -493,7 +597,7 @@ function drawResults(ctx, world, t) {
   drawBackground(ctx, t);
   ctx.fillStyle = 'rgba(10,14,28,0.6)';
   ctx.fillRect(0, 0, 1280, 720);
-  text(ctx, 'WARUNG TUTUP', 640, 120, 64, COLORS.gold, '800', 'center');
+  textSerif(ctx, 'DAPUR TUTUP', 640, 120, 64, COLORS.gold, '800', 'center');
   text(ctx, world.overReason, 640, 172, 18, COLORS.chalk, '400', 'center');
   // stars
   const stars = STAR_COINS.filter((c) => world.coins >= c).length;
@@ -511,7 +615,7 @@ function drawResults(ctx, world, t) {
   }
   const rows = [
     ['Pesanan disajikan', String(world.served)],
-    ['Pelanggan pulang marah', String(world.missed)],
+    ['Tamu pulang marah', String(world.missed)],
     ['Combo terbaik', world.bestCombo + ' beruntun'],
     ['Koin malam ini', world.coins + ' koin'],
   ];
