@@ -10,8 +10,10 @@ A pink dessert parlor game for the [Make the best cooking game](https://make.fun
 
 You run Sugar Rush Parlor — a pink dessert shop with a candy-striped awning, lollipops in the window, and a line of customers who all want something sweet. Orders land on the board with a patience bar. Each dessert is a little route through the parlor: scoop from the FREEZER, bake in the OVEN, blend in the BLENDER, while you tap the instant topping bins (sprinkles, choc sauce, cherry, wafer, ice, sugar). When the plate is complete, hit SERVE before the customer walks away. Three walkaways and the parlor closes early; the last 30 seconds are RUSH HOUR — double coins.
 
-- 4 desserts: Rainbow Sundae, Berry Sundae, Choco Brownie, Strawberry Shake
+- 6 desserts: Rainbow Sundae, Berry Sundae, Choco Brownie, Strawberry Shake, Candy Cupcake, Mint Parfait
 - Orders, patience, combo multiplier, rush hour, win/lose shift of 150 seconds
+- Golden tickets: a rare order (gold frame, ★ GOLDEN x3) worth 3x coins — and it can stack with the PERFECT bonus
+- PERFECT serve: serving while patience is still above 70% pays +50% coins
 - Mouse + keyboard (bins 1–6, stations F/O/B, Tab to switch ticket, Space to serve)
 - All art drawn in code on canvas, all sounds synthesized with WebAudio — no files loaded from the network
 
