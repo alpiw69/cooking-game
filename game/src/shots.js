@@ -112,6 +112,22 @@ function serveOrderById(world, orderId) {
   return false;
 }
 
+// Freeze the chef mid-walk at (x, y), heading for (tx, ty) with a
+// mid-stride walk phase and a plate in hand. Staging only: the world is
+// painted once after this and never ticked again, so the frame shows the
+// cook walking. No rules change.
+function freezeWalkingChef(world, x, y, tx, ty, phase) {
+  const chef = world.chef;
+  chef.x = x; chef.y = y;
+  chef.tx = tx; chef.ty = ty;
+  chef.moving = true;
+  chef.face = tx >= x ? 1 : -1;
+  chef.walkPhase = phase;
+  chef.carrying = true;
+  chef.pending = null;
+  chef.actionLabel = '';
+}
+
 export function stageShot(name, seed) {
   const world = newWorld(seed);
   if (name === 'start') {
@@ -173,10 +189,9 @@ export function stageShot(name, seed) {
     // ready tray shows the GOLDEN x3 tag next to the brass SERVE bell.
     const ready = currentOrder(world);
     if (ready) ready.golden = true;
-    // Park the chef by the plating table, where the cover frame expects them.
-    requestChef(world, { kind: 'plate' });
-    let g3 = 0;
-    while (!chefIdle(world) && g3++ < 300 && world.state === 'playing') tick(world, STEP);
+    // Freeze the chef mid-stride, carrying the finished plate toward the
+    // SERVE bell — the rush frame shows the cook walking, not standing still.
+    freezeWalkingChef(world, 930, 500, 1010, 470, 2.4);
   } else {
     // Mid-service: a full board, the most urgent ticket half-built,
     // the cook already going — plus a fresh PERFECT serve popup and
@@ -234,10 +249,9 @@ export function stageShot(name, seed) {
     // The half-built ticket on the cover is a golden ticket.
     const cover = currentOrder(world);
     if (cover) cover.golden = true;
-    // Park the chef by the plating table, mid-service.
-    requestChef(world, { kind: 'plate' });
-    let g3 = 0;
-    while (!chefIdle(world) && g3++ < 300 && world.state === 'playing') tick(world, STEP);
+    // Freeze the chef mid-stride, carrying a plate toward the island —
+    // the cover frame shows the cook walking, not standing still.
+    freezeWalkingChef(world, 520, 545, 742, 455, 1.15);
     // Re-stamp the PERFECT popup fresh, so it is visible in the frame.
     if (servedEarned > 0) {
       const msg = servedPerfect ? 'PERFECT! +' + servedEarned + ' coins' : '+' + servedEarned + ' coins';

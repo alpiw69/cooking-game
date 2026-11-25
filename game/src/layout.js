@@ -113,7 +113,9 @@ export function chefSpotFor(action) {
   }
   if (action.kind === 'finish') return { x: 742, y: 455 };
   if (action.kind === 'serve') return { x: 930, y: 470 };
-  if (action.kind === 'plate') return { x: 655, y: 500 };
+  // The chef idles in front of the plating table, off to the left so the
+  // (now much bigger) chef never hides the plate or the dish label.
+  if (action.kind === 'plate') return { x: 588, y: 548 };
   return { x: 640, y: 520 };
 }
 

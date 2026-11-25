@@ -88,8 +88,15 @@ function counterBox(ctx, x, y, w, h, dx, dy, front, frontDark, top) {
   ctx.moveTo(x + w, y); ctx.lineTo(x + w + dx, y + dy);
   ctx.lineTo(x + w + dx, y + dy + h); ctx.lineTo(x + w, y + h);
   ctx.closePath(); ctx.fill();
-  // front face
+  // front face, with soft light falling on it: brighter at the top,
+  // deeper toward the floor
   ctx.fillStyle = front;
+  ctx.fillRect(x, y, w, h);
+  const fg = ctx.createLinearGradient(0, y, 0, y + h);
+  fg.addColorStop(0, 'rgba(255,255,255,0.16)');
+  fg.addColorStop(0.45, 'rgba(255,255,255,0)');
+  fg.addColorStop(1, 'rgba(40,20,8,0.14)');
+  ctx.fillStyle = fg;
   ctx.fillRect(x, y, w, h);
   // top face
   ctx.fillStyle = top;
@@ -97,9 +104,17 @@ function counterBox(ctx, x, y, w, h, dx, dy, front, frontDark, top) {
   ctx.moveTo(x, y); ctx.lineTo(x + dx, y + dy);
   ctx.lineTo(x + w + dx, y + dy); ctx.lineTo(x + w, y);
   ctx.closePath(); ctx.fill();
-  // brass trim along the top edge of the front face
-  ctx.strokeStyle = BRASS; ctx.lineWidth = 2.5;
+  // gloss strip along the front edge of the top face
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  ctx.beginPath();
+  ctx.moveTo(x + 5, y - 2); ctx.lineTo(x + w - 5, y - 2);
+  ctx.lineTo(x + w + dx - 5, y + dy + 8); ctx.lineTo(x + dx + 5, y + dy + 8);
+  ctx.closePath(); ctx.fill();
+  // brass trim along the top edge of the front face, with a light line under it
+  ctx.strokeStyle = BRASS; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.moveTo(x, y + 1); ctx.lineTo(x + w, y + 1); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x, y + 4); ctx.lineTo(x + w, y + 4); ctx.stroke();
   ctx.strokeStyle = 'rgba(0,0,0,0.18)'; ctx.lineWidth = 1.5;
   ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
   ctx.restore();
@@ -325,71 +340,113 @@ function drawPatienceBar(ctx, x, y, w, frac) {
   }
 }
 
-// The chef: a little cook in a pink apron and a white toque, walking the
-// floor. Bobs while walking; a small label floats above when heading
-// somewhere on purpose.
+// The chef: a little cook in a pink apron and a tall white toque, walking
+// the floor — big enough to be the star of the frame (about 2.2x the old
+// size, ~150px tall). Legs alternate in a real walk cycle, the body leans
+// into the direction of travel, and when the chef carries a plate it rides
+// in the front hand. Idle, the chef breathes and looks around.
 function drawChef(ctx, chef, t) {
-  const bob = chef.moving ? Math.abs(Math.sin(chef.walkPhase)) * 3 : 0;
   const x = chef.x;
-  const y = chef.y - bob;
+  const y = chef.y;
+  // soft cast shadow on the floor, tightening a little mid-step
+  const stepLift = chef.moving ? Math.abs(Math.sin(chef.walkPhase)) : 0;
+  softShadow(ctx, x, y + 5, 34 - stepLift * 4, 9, 0.32);
+  const bob = chef.moving ? Math.abs(Math.sin(chef.walkPhase)) * 4 : Math.sin(t * 1.8) * 1.5;
+  const lean = chef.moving ? chef.face * 0.05 : 0;
+  const swing = chef.moving ? Math.sin(chef.walkPhase) : 0;
   ctx.save();
-  softShadow(ctx, chef.x, chef.y + 4, 18, 6, 0.3);
-  // body: cream shirt, pink apron
-  ctx.fillStyle = '#fff8ec';
-  rr(ctx, x - 13, y - 32, 26, 30, 9); ctx.fill();
+  ctx.translate(x, y - bob);
+  ctx.rotate(lean);
+  // ---- legs: dark trousers, alternating steps, shoes lifting off the floor
+  const liftL = chef.moving ? Math.max(0, Math.cos(chef.walkPhase)) * 7 : 0;
+  const liftR = chef.moving ? Math.max(0, -Math.cos(chef.walkPhase)) * 7 : 0;
+  ctx.strokeStyle = '#4e2e1a';
+  ctx.lineWidth = 11;
+  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-11, -48); ctx.lineTo(-11 + swing * 12, -4 - liftL); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(11, -48); ctx.lineTo(11 - swing * 12, -4 - liftR); ctx.stroke();
+  ctx.fillStyle = '#2f1a0c';
+  ctx.beginPath(); ctx.ellipse(-11 + swing * 12, -2 - liftL, 9, 5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(11 - swing * 12, -2 - liftR, 9, 5, 0, 0, Math.PI * 2); ctx.fill();
+  // ---- body: cream shirt, pink apron with a pocket
+  const shirt = ctx.createLinearGradient(0, -92, 0, -42);
+  shirt.addColorStop(0, '#ffffff');
+  shirt.addColorStop(1, '#f2e2c8');
+  ctx.fillStyle = shirt;
+  rr(ctx, -26, -92, 52, 50, 14); ctx.fill();
   ctx.strokeStyle = 'rgba(60,30,10,0.35)'; ctx.lineWidth = 1.5;
-  rr(ctx, x - 13, y - 32, 26, 30, 9); ctx.stroke();
-  ctx.fillStyle = PINK;
-  rr(ctx, x - 10, y - 26, 20, 24, 6); ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(x - 8, y - 26); ctx.lineTo(x - 4, y - 6); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x + 8, y - 26); ctx.lineTo(x + 4, y - 6); ctx.stroke();
-  // arms swing a little while walking
-  const swing = chef.moving ? Math.sin(chef.walkPhase) * 3 : 0;
-  ctx.strokeStyle = '#f0c8a0'; ctx.lineWidth = 5; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(x - 12, y - 24); ctx.lineTo(x - 17, y - 12 + swing); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x + 12, y - 24); ctx.lineTo(x + 17, y - 12 - swing); ctx.stroke();
-  // head
-  const skin = ctx.createRadialGradient(x - 4, y - 46, 2, x, y - 42, 13);
+  rr(ctx, -26, -92, 52, 50, 14); ctx.stroke();
+  const apron = ctx.createLinearGradient(0, -82, 0, -36);
+  apron.addColorStop(0, '#ff9ebb');
+  apron.addColorStop(1, '#e5488f');
+  ctx.fillStyle = apron;
+  rr(ctx, -20, -82, 40, 46, 9); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-14, -92); ctx.lineTo(-10, -82); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(14, -92); ctx.lineTo(10, -82); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  rr(ctx, -9, -54, 18, 12, 4); ctx.fill();
+  // ---- arms: the front arm carries the plate, the back arm swings
+  const f = chef.face;
+  ctx.strokeStyle = '#f0c8a0'; ctx.lineWidth = 9; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-f * 24, -84); ctx.lineTo(-f * 29, -70 + swing * 3); ctx.lineTo(-f * 31, -54 + swing * 6); ctx.stroke();
+  if (chef.carrying) {
+    // front arm bent forward, holding the plate at chest height
+    ctx.beginPath(); ctx.moveTo(f * 24, -84); ctx.lineTo(f * 30, -72); ctx.lineTo(f * 37, -64); ctx.stroke();
+    // the plate: white disc with a brass rim, a pink scoop and a cherry
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.ellipse(f * 40, -68, 20, 7, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = BRASS; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(f * 40, -68, 20, 7, 0, 0, Math.PI * 2); ctx.stroke();
+    const scoop = ctx.createRadialGradient(f * 36, -78, 2, f * 40, -74, 10);
+    scoop.addColorStop(0, '#ffffff'); scoop.addColorStop(0.55, '#ffb3c8'); scoop.addColorStop(1, '#d96a8f');
+    ctx.fillStyle = scoop;
+    ctx.beginPath(); ctx.arc(f * 40, -74, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#e5484d';
+    ctx.beginPath(); ctx.arc(f * 44, -82, 3.5, 0, Math.PI * 2); ctx.fill();
+  } else {
+    ctx.beginPath(); ctx.moveTo(f * 24, -84); ctx.lineTo(f * 29, -70 - swing * 3); ctx.lineTo(f * 31, -54 - swing * 6); ctx.stroke();
+  }
+  // ---- head: rosy cheeks, eyes looking where the chef walks
+  const skin = ctx.createRadialGradient(-6, -118, 3, 0, -110, 24);
   skin.addColorStop(0, '#ffe0bd'); skin.addColorStop(1, '#f0c8a0');
   ctx.fillStyle = skin;
-  ctx.beginPath(); ctx.arc(x, y - 42, 12, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(0, -110, 22, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = 'rgba(60,30,10,0.3)'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.arc(x, y - 42, 12, 0, Math.PI * 2); ctx.stroke();
-  // eyes look where the chef walks
+  ctx.beginPath(); ctx.arc(0, -110, 22, 0, Math.PI * 2); ctx.stroke();
   ctx.fillStyle = '#3a2415';
-  ctx.beginPath(); ctx.arc(x - 4 + chef.face * 2, y - 44, 1.8, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(x + 4 + chef.face * 2, y - 44, 1.8, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = '#4a2440'; ctx.lineWidth = 1.8; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.arc(x + chef.face * 2, y - 38, 4, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
-  // the toque: a tall white chef's hat, tilted toward the walk direction
+  ctx.beginPath(); ctx.arc(-8 + f * 3, -112, 3.2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(8 + f * 3, -112, 3.2, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#4a2440'; ctx.lineWidth = 2.2; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.arc(f * 3, -102, 7, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,127,165,0.5)';
+  ctx.beginPath(); ctx.arc(-13, -101, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(13, -101, 4, 0, Math.PI * 2); ctx.fill();
+  // ---- the toque: a tall white chef's hat, tilted toward the walk direction
   ctx.save();
-  ctx.translate(x + chef.face * 2, y - 52);
-  ctx.rotate(chef.face * 0.08);
+  ctx.translate(f * 3, -128);
+  ctx.rotate(f * 0.07);
   ctx.fillStyle = '#ffffff';
-  ctx.beginPath(); ctx.ellipse(0, -2, 13, 7, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(-7, -8, 6, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(0, -11, 7, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(7, -8, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-13, -12, 11, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(0, -18, 13, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(13, -12, 11, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, 0, 24, 10, 0, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = 'rgba(60,30,10,0.25)'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.ellipse(0, -2, 13, 7, 0, 0, Math.PI * 2); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(0, 0, 24, 10, 0, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = PINK_DEEP;
+  rr(ctx, -24, -5, 48, 6, 3); ctx.fill();
   ctx.restore();
-  // feet
-  ctx.fillStyle = WOOD_DARK;
-  const step = chef.moving ? Math.sin(chef.walkPhase) * 4 : 0;
-  ctx.beginPath(); ctx.ellipse(x - 6, y - 1 + Math.max(0, step), 5, 3, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(x + 6, y - 1 + Math.max(0, -step), 5, 3, 0, 0, Math.PI * 2); ctx.fill();
   // where the chef is headed, as a little floating label
   if (chef.moving && chef.actionLabel) {
     ctx.font = '700 12px system-ui, "Segoe UI", sans-serif';
     const w = ctx.measureText(chef.actionLabel).width + 16;
     ctx.fillStyle = 'rgba(255,248,236,0.95)';
-    rr(ctx, x - w / 2, y - 84, w, 20, 10); ctx.fill();
+    rr(ctx, -w / 2, -196, w, 20, 10); ctx.fill();
     ctx.strokeStyle = BRASS; ctx.lineWidth = 1.5;
-    rr(ctx, x - w / 2, y - 84, w, 20, 10); ctx.stroke();
+    rr(ctx, -w / 2, -196, w, 20, 10); ctx.stroke();
     ctx.fillStyle = INK;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(chef.actionLabel, x, y - 73);
+    ctx.fillText(chef.actionLabel, 0, -185);
   }
   ctx.restore();
 }
@@ -408,22 +465,23 @@ function drawWall(ctx, t) {
   ctx.fillRect(0, 198, 1280, 12);
   ctx.fillStyle = BRASS;
   ctx.fillRect(0, 198, 1280, 2);
-  // dusk window, right side: arched, amber sky, low sun, warm city
+  // dusk window, right side: arched, amber sky, low sun, warm city.
+  // The sky is filled as the arch path itself (no clip), so the edge
+  // rasterises the same way every run; the sun and city sit inside the
+  // arch and need no clipping either.
   const wx = 1080, wy = 70, ww = 170, wh = 128;
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(wx, wy + wh);
-  ctx.lineTo(wx, wy + 30);
-  ctx.quadraticCurveTo(wx + ww / 2, wy - 18, wx + ww, wy + 30);
-  ctx.lineTo(wx + ww, wy + wh);
-  ctx.closePath();
-  ctx.clip();
   const sky = ctx.createLinearGradient(0, wy, 0, wy + wh);
   sky.addColorStop(0, '#f7b267');
   sky.addColorStop(0.55, '#e07856');
   sky.addColorStop(1, '#8a5578');
   ctx.fillStyle = sky;
-  ctx.fillRect(wx, wy - 20, ww, wh + 20);
+  ctx.beginPath();
+  ctx.moveTo(wx, wy + wh + 0.5);
+  ctx.lineTo(wx, wy + 30);
+  ctx.quadraticCurveTo(wx + ww / 2, wy - 18, wx + ww, wy + 30);
+  ctx.lineTo(wx + ww, wy + wh + 0.5);
+  ctx.closePath();
+  ctx.fill();
   ctx.fillStyle = '#ffd9a0';
   ctx.beginPath(); ctx.arc(wx + ww - 42, wy + 52, 20, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = 'rgba(255,217,160,0.35)';
@@ -431,7 +489,6 @@ function drawWall(ctx, t) {
   ctx.fillStyle = '#5d3a52';
   const city = [[0, 26], [26, 40], [52, 30], [80, 46], [108, 34], [134, 44]];
   city.forEach(([bx, bh]) => { ctx.fillRect(wx + bx, wy + wh - bh, 24, bh); });
-  ctx.restore();
   // window frame: wood arch + mullions
   ctx.strokeStyle = WOOD_DARK; ctx.lineWidth = 6;
   ctx.beginPath();
@@ -534,6 +591,12 @@ function drawFloor(ctx, t) {
   ctx.beginPath(); ctx.ellipse(655, 512, 200, 40, 0, 0, Math.PI * 2); ctx.stroke();
   ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.ellipse(655, 512, 178, 32, 0, 0, Math.PI * 2); ctx.stroke();
+  // warm light pooling on the floor under the dusk window
+  const pool = ctx.createRadialGradient(980, 470, 20, 980, 470, 280);
+  pool.addColorStop(0, 'rgba(255,214,140,0.22)');
+  pool.addColorStop(1, 'rgba(255,214,140,0)');
+  ctx.fillStyle = pool;
+  ctx.beginPath(); ctx.ellipse(980, 470, 280, 95, 0, 0, Math.PI * 2); ctx.fill();
   // dust motes drifting in the dusk light, fixed spots
   const motes = [[300, 300], [420, 260], [900, 280], [1000, 360], [500, 560], [820, 560]];
   motes.forEach(([mx, my], i) => {
@@ -1165,6 +1228,16 @@ function drawResults(ctx, world, t) {
   text(ctx, 'click the button or press Enter', 640, 660, 13, 'rgba(255,248,236,0.85)', '400', 'center');
 }
 
+// A soft vignette over the room: the corners fall gently darker so the
+// centre of the café reads as lit, like a warm photograph.
+function drawVignette(ctx) {
+  const v = ctx.createRadialGradient(640, 380, 300, 640, 380, 720);
+  v.addColorStop(0, 'rgba(40,20,8,0)');
+  v.addColorStop(1, 'rgba(40,20,8,0.10)');
+  ctx.fillStyle = v;
+  ctx.fillRect(0, 0, 1280, 720);
+}
+
 export function render(ctx, world, t) {
   ctx.clearRect(0, 0, 1280, 720);
   if (world.state === 'title') { drawTitle(ctx, world, t); return; }
@@ -1179,6 +1252,7 @@ export function render(ctx, world, t) {
   drawChef(ctx, world.chef, t);
   drawOrderBoard(ctx, world, t);
   drawStory(ctx, world);
+  drawVignette(ctx);
   drawTopBar(ctx, world);
   drawGoldenHour(ctx, world, t);
   drawFlash(ctx, world);
