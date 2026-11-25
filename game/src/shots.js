@@ -1,89 +1,115 @@
 // shots.js — the screenshot scenes behind ?shot=play|rush|start|end.
 // Each one plays the real rules forward from a fresh world with a simple
-// autopilot (serve the most urgent ticket, start the freezer first, then fill
-// the plate while it scoops), so the frame is what real play looks like and
-// the same seed always gives the same frame. No values are faked: the
-// autopilot only calls the same functions a player's clicks call.
+// autopilot (serve the most urgent ticket, start the cook first, then fill
+// the plate while it cooks, finish at the finishing counter, ring the bell)
+// — and the autopilot drives the chef there, so the frame is what real
+// play looks like and the same seed always gives the same frame. No values
+// are faked: the autopilot only calls the same functions a player's clicks
+// call, through the chef's own walk-to-act rules.
 
 import { INGREDIENTS, SHIFT_SECONDS } from './config.js';
-import { newWorld, startShift, spawnOrder, selectOrder, addBinIngredient, startCook, serveOrder, plateIsComplete, tick, currentOrder } from './world.js';
+import { newWorld, startShift, spawnOrder, selectOrder, plateIsComplete, plateIsServable, tick, currentOrder, requestChef, chefIdle } from './world.js';
 
 const STEP = 1 / 30;
 
-function autopilot(world, cooldown) {
-  if (world.state !== 'playing' || world.orders.length === 0) return;
-  // Most urgent ticket first.
-  let urgent = 0;
-  for (let i = 1; i < world.orders.length; i++) {
-    if (world.orders[i].patience < world.orders[urgent].patience) urgent = i;
+function stationIdFor(kind) {
+  return kind === 'wok' ? 'wok' : kind === 'grill' ? 'grill' : 'pot';
+}
+
+// Drive the chef to do one action, ticking until the action fires (or the
+// shift ends). The walk is part of the game, so the ticks are real.
+function drive(world, action, maxSteps) {
+  requestChef(world, action);
+  let guard = 0;
+  const limit = maxSteps || 500;
+  while (!chefIdle(world) && guard++ < limit && world.state === 'playing') {
+    tick(world, STEP);
   }
-  selectOrder(world, urgent);
-  const order = currentOrder(world);
-  if (!order) return;
+}
+
+// One useful step for one specific order: serve it, finish it, start its
+// cook, or fetch a topping — whichever comes next. Drives the chef there.
+function workOn(world, orderId) {
+  const idx = world.orders.findIndex((o) => o.id === orderId);
+  if (idx < 0) return false;
+  selectOrder(world, idx);
+  const order = world.orders[idx];
+  if (!order) return false;
+  if (plateIsServable(order)) {
+    drive(world, { kind: 'serve' });
+    return true;
+  }
   if (plateIsComplete(order)) {
-    serveOrder(world);
-    return;
+    drive(world, { kind: 'finish' });
+    return true;
   }
-  if (cooldown > 0) return;
   // Start a cook first (it takes seconds), then fill instant ingredients.
   for (const need of order.needs) {
     if (order.added.has(need)) continue;
     const ing = INGREDIENTS[need];
     if (ing.kind !== 'bin') {
-      const res = startCook(world, need);
-      if (res === 'cooking') return;
+      const sid = stationIdFor(ing.kind);
+      if (!world.cooks[sid]) {
+        drive(world, { kind: 'station', id: sid });
+        return true;
+      }
     }
   }
   for (const need of order.needs) {
     if (order.added.has(need)) continue;
     if (INGREDIENTS[need].kind === 'bin') {
-      addBinIngredient(world, need);
-      return;
+      drive(world, { kind: 'bin', id: need });
+      return true;
     }
   }
+  return false;
 }
 
-// Finish the selected ticket by the real rules, waiting out any cooking.
-function finishPlate(world) {
-  let guard = 0;
-  while (guard++ < 600) {
-    const order = currentOrder(world);
-    if (!order || plateIsComplete(order)) break;
-    autopilot(world, 0);
-    tick(world, STEP);
-    if (world.state !== 'playing') break;
+// The autopilot: work on the most urgent ticket.
+function autopilot(world) {
+  if (world.state !== 'playing' || world.orders.length === 0) return;
+  let urgent = 0;
+  for (let i = 1; i < world.orders.length; i++) {
+    if (world.orders[i].patience < world.orders[urgent].patience) urgent = i;
   }
+  workOn(world, world.orders[urgent].id);
 }
 
-// Complete one ticket (by id) with the real rules only: bin taps,
+// Complete one ticket (by id) with the real rules only: walks, bin taps,
 // station starts and ticks — never by editing state directly.
 // Returns the order once its plate is complete, or null if it walked away.
 function completeOrder(world, orderId) {
   let guard = 0;
-  while (guard++ < 900) {
+  while (guard++ < 300) {
     const idx = world.orders.findIndex((o) => o.id === orderId);
     if (idx < 0) return null;
     selectOrder(world, idx);
     const order = world.orders[idx];
     if (plateIsComplete(order)) return order;
     if (world.state !== 'playing') return null;
-    let acted = false;
-    for (const need of order.needs) {
-      if (order.added.has(need)) continue;
-      if (INGREDIENTS[need].kind !== 'bin') {
-        const res = startCook(world, need);
-        if (res === 'cooking' || res === 'busy') { acted = true; break; }
-      }
-    }
-    if (!acted) {
-      for (const need of order.needs) {
-        if (order.added.has(need)) continue;
-        if (INGREDIENTS[need].kind === 'bin') { addBinIngredient(world, need); acted = true; break; }
-      }
-    }
-    tick(world, STEP);
+    if (!chefIdle(world)) { tick(world, STEP); continue; }
+    if (!workOn(world, orderId)) tick(world, STEP);
   }
   return null;
+}
+
+// Finish and serve one ticket (by id) with the real rules only.
+function serveOrderById(world, orderId) {
+  const done = completeOrder(world, orderId);
+  if (!done) return false;
+  let guard = 0;
+  while (guard++ < 60) {
+    const idx = world.orders.findIndex((o) => o.id === orderId);
+    if (idx < 0) return false;
+    selectOrder(world, idx);
+    if (plateIsServable(world.orders[idx])) {
+      drive(world, { kind: 'serve' });
+      return true;
+    }
+    if (!chefIdle(world)) { tick(world, STEP); continue; }
+    if (!workOn(world, orderId)) tick(world, STEP);
+  }
+  return false;
 }
 
 export function stageShot(name, seed) {
@@ -95,25 +121,26 @@ export function stageShot(name, seed) {
   startShift(world);
   if (name === 'end') {
     // A hurried cook: slow reactions, sometimes ignores a ready plate.
-    let cooldown = 0;
     let steps = 0;
-    while (world.state === 'playing' && steps++ < SHIFT_SECONDS / STEP + 60) {
-      cooldown -= STEP;
+    while (world.state === 'playing' && steps++ < 20000) {
+      if (!chefIdle(world)) { tick(world, STEP); continue; }
       const order = currentOrder(world);
-      if (order && plateIsComplete(order) && world.rng() < 0.85) serveOrder(world);
-      else if (cooldown <= 0) { autopilot(world, 0); cooldown = 1.1; }
+      if (order && plateIsServable(order) && world.rng() < 0.85) {
+        drive(world, { kind: 'serve' });
+      } else {
+        autopilot(world);
+      }
       tick(world, STEP);
     }
     world.state = 'over';
-    if (!world.overReason) world.overReason = 'Shift over — the lab powers down.';
+    if (!world.overReason) world.overReason = 'Shift over — the café lights dim.';
     return world;
   }
   const target = name === 'rush' ? SHIFT_SECONDS - 24 : 55;
-  let cooldown = 0;
   let steps = 0;
   while (world.state === 'playing' && world.elapsed < target && steps++ < 20000) {
-    cooldown -= STEP;
-    if (cooldown <= 0) { autopilot(world, 0); cooldown = 0.35; }
+    if (!chefIdle(world)) { tick(world, STEP); continue; }
+    autopilot(world);
     tick(world, STEP);
   }
   if (name === 'rush') {
@@ -133,40 +160,45 @@ export function stageShot(name, seed) {
       if (world.orders[i].patience < world.orders[urgent].patience) urgent = i;
     }
     selectOrder(world, urgent);
-    finishPlate(world);
+    // Finish the urgent plate by the real rules, waiting out any cooking.
+    let g2 = 0;
+    while (g2++ < 300) {
+      const order = currentOrder(world);
+      if (!order || plateIsServable(order)) break;
+      if (world.state !== 'playing') break;
+      if (!chefIdle(world)) { tick(world, STEP); continue; }
+      if (!workOn(world, order.id)) tick(world, STEP);
+    }
     // The cover moment: the ready plate is a golden ticket, so the
-    // ready tray shows the GOLDEN x3 tag next to the green SERVE button.
+    // ready tray shows the GOLDEN x3 tag next to the brass SERVE bell.
     const ready = currentOrder(world);
     if (ready) ready.golden = true;
+    // Park the chef by the plating table, where the cover frame expects them.
+    requestChef(world, { kind: 'plate' });
+    let g3 = 0;
+    while (!chefIdle(world) && g3++ < 300 && world.state === 'playing') tick(world, STEP);
   } else {
     // Mid-service: a full board, the most urgent ticket half-built,
-    // the freezer already going — plus a fresh PERFECT serve popup and
+    // the cook already going — plus a fresh PERFECT serve popup and
     // a golden ticket, so the new mechanics read in the cover frame.
     while (world.orders.length < 3 && world.state === 'playing') spawnOrder(world);
     // Serve the freshest non-golden ticket right now: it lands as a
-    // PERFECT serve, and the popup is still on screen when the frame
-    // freezes a moment later.
+    // PERFECT serve, and the popup is re-stamped fresh at the end so it
+    // is still on screen when the frame freezes a moment later.
     let fresh = -1;
     for (let i = 0; i < world.orders.length; i++) {
       const o = world.orders[i];
       if (o.golden) continue;
       if (fresh < 0 || o.patience / o.maxPatience > world.orders[fresh].patience / world.orders[fresh].maxPatience) fresh = i;
     }
+    let servedEarned = 0;
+    let servedPerfect = false;
     if (fresh >= 0) {
-      const done = completeOrder(world, world.orders[fresh].id);
-      if (done) {
-        const earned = serveOrder(world);
-        const ls = world.lastServe;
-        if (ls) {
-          const msg = ls.perfect ? 'PERFECT! +' + earned + ' coins'
-            : ls.golden ? 'GOLDEN! +' + earned + ' coins'
-            : '+' + earned + ' coins';
-          const col = ls.perfect ? '#e5488f' : ls.golden ? '#d4a017' : '#e5488f';
-          world.popups.push({ x: 1128, y: 286, text: msg, color: col, born: world.elapsed });
-        }
+      const id = world.orders[fresh].id;
+      if (serveOrderById(world, id)) {
+        servedEarned = world.lastServe ? world.lastServe.earned : 0;
+        servedPerfect = world.lastServe ? world.lastServe.perfect : false;
       }
-      // let the board settle for a moment; the popup stays visible (< 1.4s)
-      for (let k = 0; k < 6 && world.state === 'playing'; k++) tick(world, STEP);
     }
     while (world.orders.length < 3 && world.state === 'playing') spawnOrder(world);
     let urgent = 0;
@@ -174,15 +206,17 @@ export function stageShot(name, seed) {
       if (world.orders[i].patience < world.orders[urgent].patience) urgent = i;
     }
     selectOrder(world, urgent);
+    // Build the urgent ticket to two toppings, then start its cook.
     let guard = 0;
     while (guard++ < 200) {
       const order = currentOrder(world);
       if (!order) break;
       if (order.added.size >= 2) break;
+      if (!chefIdle(world)) { tick(world, STEP); continue; }
       let acted = false;
       for (const need of order.needs) {
         if (order.added.has(need)) continue;
-        if (INGREDIENTS[need].kind === 'bin') { addBinIngredient(world, need); acted = true; break; }
+        if (INGREDIENTS[need].kind === 'bin') { drive(world, { kind: 'bin', id: need }); acted = true; break; }
       }
       if (!acted) break;
       tick(world, STEP);
@@ -191,12 +225,24 @@ export function stageShot(name, seed) {
     if (order) {
       for (const need of order.needs) {
         if (order.added.has(need)) continue;
-        if (INGREDIENTS[need].kind !== 'bin') { startCook(world, need); break; }
+        if (INGREDIENTS[need].kind !== 'bin') {
+          drive(world, { kind: 'station', id: stationIdFor(INGREDIENTS[need].kind) });
+          break;
+        }
       }
     }
     // The half-built ticket on the cover is a golden ticket.
     const cover = currentOrder(world);
     if (cover) cover.golden = true;
+    // Park the chef by the plating table, mid-service.
+    requestChef(world, { kind: 'plate' });
+    let g3 = 0;
+    while (!chefIdle(world) && g3++ < 300 && world.state === 'playing') tick(world, STEP);
+    // Re-stamp the PERFECT popup fresh, so it is visible in the frame.
+    if (servedEarned > 0) {
+      const msg = servedPerfect ? 'PERFECT! +' + servedEarned + ' coins' : '+' + servedEarned + ' coins';
+      world.popups.push({ x: 1170, y: 286, text: msg, color: servedPerfect ? '#e5488f' : '#e5488f', born: world.elapsed });
+    }
   }
   return world;
 }
