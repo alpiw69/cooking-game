@@ -56,10 +56,31 @@ export const DISHES = {
     name: 'Strawberry Shake', short: 'SHAKE', needs: ['teh', 'es', 'gula'],
     coins: 7, color: '#e5488f', patience: 30,
   },
+  cupcake: {
+    name: 'Candy Cupcake', short: 'CUPCAKE', needs: ['ayam', 'telur', 'gula'],
+    coins: 10, color: '#ff8fb8', patience: 36,
+  },
+  parfait: {
+    name: 'Mint Parfait', short: 'PARFAIT', needs: ['mie', 'bawang', 'es', 'kecap'],
+    coins: 13, color: '#7ec8a9', patience: 42,
+  },
 };
 
 // The day's menu, in the order new orders draw from it.
-export const MENU_ORDER = ['nasgor', 'miegor', 'sate', 'esteh'];
+export const MENU_ORDER = ['nasgor', 'miegor', 'sate', 'esteh', 'cupcake', 'parfait'];
+
+// Golden ticket: a rare order worth 3x coins, with shorter patience.
+// At most one golden ticket sits on the board at a time.
+export const GOLDEN_CHANCE = 0.12;
+export const GOLDEN_AFTER_SECONDS = 25;
+export const GOLDEN_COINS_MULT = 3;
+export const GOLDEN_PATIENCE_MULT = 0.8;
+
+// Perfect serve: serving while patience is still above this fraction
+// pays a bonus on top of everything else. 0.85 keeps it a real reward
+// for fast, focused play — at 0.7 nearly every serve was "perfect".
+export const PERFECT_AT = 0.85;
+export const PERFECT_BONUS_MULT = 1.5;
 
 // How fast new orders arrive: seconds between spawns, early vs rush.
 export const SPAWN_EVERY_EARLY = 8;
@@ -71,7 +92,8 @@ export const COMBO_STEP = 0.25;
 export const COMBO_MAX = 2.0;
 
 // Stars on the results screen, by coins earned in the shift.
-export const STAR_COINS = [120, 220, 320];
+// Retuned for the new economy (golden tickets + perfect bonuses pay more).
+export const STAR_COINS = [300, 550, 850];
 
 // Palette: a pink dessert parlor — pastel pink, cream, mint, strawberry red.
 // Panels are light, so the text ink is a deep plum that reads on white.

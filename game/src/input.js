@@ -88,7 +88,12 @@ export function attachInput(canvas, world, sfx) {
       if (order && plateIsComplete(order)) {
         const earned = serveOrder(world);
         const r = serve;
-        popup(world, r.x + r.w / 2, r.y - 14, '+' + earned + ' coins', '#e5488f');
+        const ls = world.lastServe;
+        const msg = ls && ls.perfect ? 'PERFECT! +' + earned + ' coins'
+          : ls && ls.golden ? 'GOLDEN! +' + earned + ' coins'
+          : '+' + earned + ' coins';
+        const col = ls && ls.perfect ? '#e5488f' : ls && ls.golden ? '#d4a017' : '#e5488f';
+        popup(world, r.x + r.w / 2, r.y - 14, msg, col);
         sfx.serve();
       } else {
         popup(world, x, y - 10, 'plate not ready yet', '#ffb020');
@@ -116,7 +121,12 @@ export function attachInput(canvas, world, sfx) {
       const order = world.orders[world.selectedOrder];
       if (order && plateIsComplete(order)) {
         const earned = serveOrder(world);
-        popup(world, 1128, 286, '+' + earned + ' coins', '#e5488f');
+        const ls = world.lastServe;
+        const msg = ls && ls.perfect ? 'PERFECT! +' + earned + ' coins'
+          : ls && ls.golden ? 'GOLDEN! +' + earned + ' coins'
+          : '+' + earned + ' coins';
+        const col = ls && ls.perfect ? '#e5488f' : ls && ls.golden ? '#d4a017' : '#e5488f';
+        popup(world, 1128, 286, msg, col);
         sfx.serve();
       }
       return;

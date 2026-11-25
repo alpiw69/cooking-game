@@ -4,7 +4,7 @@
 // screenshot is shrunk. render(ctx, world, t) draws one frame; t is
 // animation time in seconds.
 
-import { COLORS, DISHES, INGREDIENTS, STATIONS, BIN_ORDER, SHIFT_SECONDS, MAX_MISSED, STAR_COINS, GAME_TITLE, GAME_SUBTITLE } from './config.js';
+import { COLORS, DISHES, MENU_ORDER, INGREDIENTS, STATIONS, BIN_ORDER, SHIFT_SECONDS, MAX_MISSED, STAR_COINS, GAME_TITLE, GAME_SUBTITLE } from './config.js';
 import { ticketRect, stationRect, plateRect, serveRect, serveReadyRect, binRect, startButtonRect, againButtonRect } from './layout.js';
 import { plateIsComplete } from './world.js';
 
@@ -359,6 +359,13 @@ function drawOrderBoard(ctx, world, t) {
     }
     drawPatienceBar(ctx, r.x + 14, r.y + 96, r.w - 28, Math.max(0, order.patience / order.maxPatience));
     if (selected) text(ctx, '▶ SELECTED', r.x + r.w - 12, r.y + 22, 11, COLORS.gold, '800', 'right');
+    if (order.golden) {
+      // a golden ticket: a gold frame around the whole ticket plus a tag
+      // along the bottom, so it reads even when the screenshot is shrunk
+      ctx.strokeStyle = '#f7b500'; ctx.lineWidth = 3;
+      rr(ctx, r.x - 2, r.y - 2, r.w + 4, r.h + 4, 14); ctx.stroke();
+      text(ctx, '★ GOLDEN x3', r.x + r.w / 2, r.y + 114, 11, '#b8860b', '800', 'center');
+    }
   });
   for (let i = world.orders.length; i < 3; i++) {
     const r = ticketRect(i);
@@ -536,10 +543,11 @@ function drawServe(ctx, world, t) {
     const dish = DISHES[order.dish];
     ctx.fillStyle = COLORS.plate;
     ctx.beginPath(); ctx.arc(s.x + 52, s.y + 74, 34, 0, Math.PI * 2); ctx.fill();
-    drawIngredient(ctx, order.dish === 'esteh' ? 'teh' : order.dish === 'sate' ? 'ayam' : order.dish === 'miegor' ? 'mie' : 'nasi', s.x + 52, s.y + 74, 40);
+    drawIngredient(ctx, order.dish === 'esteh' ? 'teh' : order.dish === 'sate' ? 'ayam' : order.dish === 'miegor' ? 'mie' : order.dish === 'cupcake' ? 'ayam' : order.dish === 'parfait' ? 'mie' : 'nasi', s.x + 52, s.y + 74, 40);
     text(ctx, dish.name, s.x + 100, s.y + 62, fitSize(ctx, dish.name, 126, 15, '800'), dish.color, '800');
-    text(ctx, dish.coins + ' coins' + (world.rush ? ' x2' : ''), s.x + 100, s.y + 86, 13, COLORS.gold, '700');
-    if (world.rush) text(ctx, 'RUSH HOUR!', s.x + 100, s.y + 106, 12, '#ff9d45', '800');
+    text(ctx, dish.coins + ' coins' + (world.rush ? ' x2' : ''), s.x + 100, s.y + (order.golden ? 82 : 86), 13, COLORS.gold, '700');
+    if (order.golden) text(ctx, '★ GOLDEN x3', s.x + 100, s.y + 102, 12, '#b8860b', '800');
+    if (world.rush) text(ctx, 'RUSH HOUR!', s.x + 100, s.y + (order.golden ? 118 : 106), 12, '#ff9d45', '800');
   } else {
     ctx.strokeStyle = 'rgba(74,36,64,0.25)'; ctx.lineWidth = 2; ctx.setLineDash([6, 5]);
     ctx.beginPath(); ctx.arc(s.x + 52, s.y + 74, 34, 0, Math.PI * 2); ctx.stroke();
@@ -601,21 +609,21 @@ function drawTitle(ctx, world, t) {
   text(ctx, 'SUGAR RUSH', 640, 185, 80, '#e5488f', '800', 'center');
   text(ctx, 'PARLOR', 640, 262, 80, '#ff6fa5', '800', 'center');
   text(ctx, GAME_SUBTITLE, 640, 318, 20, COLORS.ink, '400', 'center');
-  // a little preview plate of the four desserts
-  const dishes = ['nasgor', 'miegor', 'sate', 'esteh'];
+  // a little preview plate of the six desserts
+  const dishes = MENU_ORDER;
   dishes.forEach((d, i) => {
-    const x = 400 + i * 160;
+    const x = 240 + i * 168;
     ctx.fillStyle = COLORS.plate;
-    ctx.beginPath(); ctx.arc(x, 395, 52, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, 395, 48, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = COLORS.plateEdge; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(x, 395, 52, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, 395, 48, 0, Math.PI * 2); ctx.stroke();
     const dish = DISHES[d];
-    drawIngredient(ctx, dish.needs[0], x, 395, 56);
-    text(ctx, dish.name, x, 465, 15, dish.color, '800', 'center');
-    text(ctx, dish.coins + ' coins', x, 487, 13, COLORS.gold, '400', 'center');
+    drawIngredient(ctx, dish.needs[0], x, 395, 52);
+    text(ctx, dish.name, x, 463, fitSize(ctx, dish.name, 150, 15, '800'), dish.color, '800', 'center');
+    text(ctx, dish.coins + ' coins', x, 485, 13, COLORS.gold, '400', 'center');
   });
   text(ctx, 'Orders land on the top board. Tap ingredients to build, freeze / bake / blend,', 640, 508, 16, COLORS.ink, '400', 'center');
-  text(ctx, 'then SERVE before customers run out of patience. 3 walk away = parlor closes.', 640, 531, 16, COLORS.ink, '400', 'center');
+  text(ctx, 'then SERVE before customers run out of patience. Golden tickets pay 3x — fast serves earn PERFECT!', 640, 531, 16, COLORS.ink, '400', 'center');
   const b = startButtonRect();
   const pulse = 0.9 + 0.1 * Math.sin(t * 4);
   ctx.save(); ctx.globalAlpha = pulse;
@@ -650,10 +658,12 @@ function drawResults(ctx, world, t) {
     ['Orders served', String(world.served)],
     ['Customers left angry', String(world.missed)],
     ['Best combo', world.bestCombo + ' in a row'],
+    ['Perfect serves', String(world.perfectServes)],
+    ['Golden tickets served', String(world.goldenServed)],
     ['Coins tonight', world.coins + ' coins'],
   ];
   rows.forEach(([label, value], i) => {
-    const y = 332 + i * 44;
+    const y = 320 + i * 40;
     text(ctx, label, 480, y, 20, COLORS.ink, '400');
     text(ctx, value, 800, y, 22, COLORS.gold, '800', 'right');
   });

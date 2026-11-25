@@ -7,6 +7,8 @@ import {
   SHIFT_SECONDS, MAX_MISSED, RUSH_AT_SECONDS_LEFT,
   SPAWN_EVERY_EARLY, SPAWN_EVERY_LATE, SPAWN_EVERY_RUSH,
   COMBO_STEP, COMBO_MAX,
+  GOLDEN_CHANCE, GOLDEN_AFTER_SECONDS, GOLDEN_COINS_MULT, GOLDEN_PATIENCE_MULT,
+  PERFECT_AT, PERFECT_BONUS_MULT,
 } from './config.js';
 import { makeRng, pick } from './random.js';
 
@@ -35,6 +37,9 @@ export function newWorld(seed) {
     flashAt: 0,
     popups: [], // {x, y, text, color, born} floating feedback
     servedTotal: 0,
+    perfectServes: 0, // serves landed while patience was still high
+    goldenServed: 0, // golden tickets served
+    lastServe: null, // {earned, perfect, golden} of the most recent serve
   };
 }
 
@@ -56,6 +61,9 @@ export function startShift(world) {
   world.rush = false;
   world.overReason = '';
   world.popups = [];
+  world.perfectServes = 0;
+  world.goldenServed = 0;
+  world.lastServe = null;
   spawnOrder(world);
 }
 
@@ -72,7 +80,11 @@ export function spawnOrder(world) {
   const dish = DISHES[dishId];
   // Patience shrinks as the night wears on, so the pressure genuinely grows.
   const pressure = 1 - (world.elapsed / SHIFT_SECONDS) * 0.4;
-  const patience = dish.patience * pressure * (world.rush ? 0.85 : 1);
+  let patience = dish.patience * pressure * (world.rush ? 0.85 : 1);
+  // A golden ticket: rare, worth 3x, shorter patience, at most one on the board.
+  const hasGolden = world.orders.some((o) => o.golden);
+  const golden = !hasGolden && world.elapsed > GOLDEN_AFTER_SECONDS && world.rng() < GOLDEN_CHANCE;
+  if (golden) patience *= GOLDEN_PATIENCE_MULT;
   world.orders.push({
     id: world.nextOrderId++,
     dish: dishId,
@@ -81,7 +93,12 @@ export function spawnOrder(world) {
     patience,
     maxPatience: patience,
     customer: pick(world.rng, CUSTOMERS),
+    golden,
   });
+  if (golden) {
+    world.flash = '★ GOLDEN TICKET — worth 3x coins!';
+    world.flashAt = world.elapsed;
+  }
   if (world.orders.length > 3) world.orders.shift();
   if (world.selectedOrder >= world.orders.length) world.selectedOrder = 0;
   world.plate = new Set(world.orders[world.selectedOrder]?.added ?? []);
@@ -140,7 +157,15 @@ export function serveOrder(world) {
   world.bestCombo = Math.max(world.bestCombo, world.combo);
   const mult = Math.min(1 + (world.combo - 1) * COMBO_STEP, COMBO_MAX);
   const rushMult = world.rush ? 2 : 1;
-  const earned = Math.round(dish.coins * mult * rushMult);
+  // Golden tickets pay 3x; a serve landed while patience is still high
+  // earns the PERFECT bonus on top of everything else.
+  const goldenMult = order.golden ? GOLDEN_COINS_MULT : 1;
+  const perfect = order.patience / order.maxPatience >= PERFECT_AT;
+  let earned = Math.round(dish.coins * mult * rushMult * goldenMult);
+  if (perfect) earned = Math.round(earned * PERFECT_BONUS_MULT);
+  if (perfect) world.perfectServes += 1;
+  if (order.golden) world.goldenServed += 1;
+  world.lastServe = { earned, perfect, golden: order.golden };
   world.coins += earned;
   world.score += earned * 10;
   world.served += 1;

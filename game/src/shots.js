@@ -55,6 +55,37 @@ function finishPlate(world) {
   }
 }
 
+// Complete one ticket (by id) with the real rules only: bin taps,
+// station starts and ticks — never by editing state directly.
+// Returns the order once its plate is complete, or null if it walked away.
+function completeOrder(world, orderId) {
+  let guard = 0;
+  while (guard++ < 900) {
+    const idx = world.orders.findIndex((o) => o.id === orderId);
+    if (idx < 0) return null;
+    selectOrder(world, idx);
+    const order = world.orders[idx];
+    if (plateIsComplete(order)) return order;
+    if (world.state !== 'playing') return null;
+    let acted = false;
+    for (const need of order.needs) {
+      if (order.added.has(need)) continue;
+      if (INGREDIENTS[need].kind !== 'bin') {
+        const res = startCook(world, need);
+        if (res === 'cooking' || res === 'busy') { acted = true; break; }
+      }
+    }
+    if (!acted) {
+      for (const need of order.needs) {
+        if (order.added.has(need)) continue;
+        if (INGREDIENTS[need].kind === 'bin') { addBinIngredient(world, need); acted = true; break; }
+      }
+    }
+    tick(world, STEP);
+  }
+  return null;
+}
+
 export function stageShot(name, seed) {
   const world = newWorld(seed);
   if (name === 'start') {
@@ -103,9 +134,40 @@ export function stageShot(name, seed) {
     }
     selectOrder(world, urgent);
     finishPlate(world);
+    // The cover moment: the ready plate is a golden ticket, so the
+    // ready tray shows the GOLDEN x3 tag next to the green SERVE button.
+    const ready = currentOrder(world);
+    if (ready) ready.golden = true;
   } else {
     // Mid-service: a full board, the most urgent ticket half-built,
-    // the freezer already going.
+    // the freezer already going — plus a fresh PERFECT serve popup and
+    // a golden ticket, so the new mechanics read in the cover frame.
+    while (world.orders.length < 3 && world.state === 'playing') spawnOrder(world);
+    // Serve the freshest non-golden ticket right now: it lands as a
+    // PERFECT serve, and the popup is still on screen when the frame
+    // freezes a moment later.
+    let fresh = -1;
+    for (let i = 0; i < world.orders.length; i++) {
+      const o = world.orders[i];
+      if (o.golden) continue;
+      if (fresh < 0 || o.patience / o.maxPatience > world.orders[fresh].patience / world.orders[fresh].maxPatience) fresh = i;
+    }
+    if (fresh >= 0) {
+      const done = completeOrder(world, world.orders[fresh].id);
+      if (done) {
+        const earned = serveOrder(world);
+        const ls = world.lastServe;
+        if (ls) {
+          const msg = ls.perfect ? 'PERFECT! +' + earned + ' coins'
+            : ls.golden ? 'GOLDEN! +' + earned + ' coins'
+            : '+' + earned + ' coins';
+          const col = ls.perfect ? '#e5488f' : ls.golden ? '#d4a017' : '#e5488f';
+          world.popups.push({ x: 1128, y: 286, text: msg, color: col, born: world.elapsed });
+        }
+      }
+      // let the board settle for a moment; the popup stays visible (< 1.4s)
+      for (let k = 0; k < 6 && world.state === 'playing'; k++) tick(world, STEP);
+    }
     while (world.orders.length < 3 && world.state === 'playing') spawnOrder(world);
     let urgent = 0;
     for (let i = 1; i < world.orders.length; i++) {
@@ -132,6 +194,9 @@ export function stageShot(name, seed) {
         if (INGREDIENTS[need].kind !== 'bin') { startCook(world, need); break; }
       }
     }
+    // The half-built ticket on the cover is a golden ticket.
+    const cover = currentOrder(world);
+    if (cover) cover.golden = true;
   }
   return world;
 }
