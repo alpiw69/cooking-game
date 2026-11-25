@@ -64,10 +64,10 @@ export function attachInput(canvas, world, sfx) {
         if (wanted) {
           const res = startCook(world, wanted);
           buzz(res, x, y);
-          if (res === 'wrong') popup(world, x, y - 10, 'bukan buat pesanan ini', '#e5484d');
-          if (res === 'busy') popup(world, x, y - 10, 'lagi masak, tunggu!', '#ffb020');
+          if (res === 'wrong') popup(world, x, y - 10, 'not for this order', '#e5484d');
+          if (res === 'busy') popup(world, x, y - 10, 'still making it, wait!', '#ffb020');
         } else {
-          popup(world, x, y - 10, 'pesanan ini tidak butuh itu', '#e5484d');
+          popup(world, x, y - 10, 'this order does not need that', '#e5484d');
           sfx.thud();
         }
       }
@@ -78,7 +78,7 @@ export function attachInput(canvas, world, sfx) {
     if (bin) {
       const res = addBinIngredient(world, bin);
       buzz(res, x, y);
-      if (res === 'wrong') popup(world, x, y - 10, 'bukan buat pesanan ini', '#e5484d');
+      if (res === 'wrong') popup(world, x, y - 10, 'not for this order', '#e5484d');
       return;
     }
 
@@ -88,10 +88,10 @@ export function attachInput(canvas, world, sfx) {
       if (order && plateIsComplete(order)) {
         const earned = serveOrder(world);
         const r = serve;
-        popup(world, r.x + r.w / 2, r.y - 14, '+' + earned + ' koin', '#ffd166');
+        popup(world, r.x + r.w / 2, r.y - 14, '+' + earned + ' coins', '#e5488f');
         sfx.serve();
       } else {
-        popup(world, x, y - 10, 'piring belum lengkap', '#ffb020');
+        popup(world, x, y - 10, 'plate not ready yet', '#ffb020');
         sfx.thud();
       }
     }
@@ -116,7 +116,7 @@ export function attachInput(canvas, world, sfx) {
       const order = world.orders[world.selectedOrder];
       if (order && plateIsComplete(order)) {
         const earned = serveOrder(world);
-        popup(world, 1128, 286, '+' + earned + ' koin', '#ffd166');
+        popup(world, 1128, 286, '+' + earned + ' coins', '#e5488f');
         sfx.serve();
       }
       return;
@@ -129,7 +129,7 @@ export function attachInput(canvas, world, sfx) {
       }
       return;
     }
-    const stationKey = { w: 'wok', g: 'grill', t: 'pot' }[event.key.toLowerCase()];
+    const stationKey = { f: 'wok', o: 'grill', b: 'pot' }[event.key.toLowerCase()];
     if (stationKey) {
       const station = STATIONS.find((s) => s.id === stationKey);
       const order = world.orders[world.selectedOrder];

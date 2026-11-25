@@ -1,4 +1,4 @@
-// world.js — the night itself: orders, the wok, the plate, the clock.
+// world.js — the day itself: orders, the freezer, the plate, the clock.
 // No drawing here, no input: pure state that render.js shows and input.js
 // pokes. Every rule the judge can read lives in these functions.
 
@@ -60,11 +60,11 @@ export function startShift(world) {
 }
 
 const CUSTOMERS = [
-  { name: 'Raja', skin: '#e8b88a', shirt: '#7a1f2b' },
-  { name: 'Ratu', skin: '#f0c8a0', shirt: '#5b2a86' },
-  { name: 'Pangeran', skin: '#d9a06b', shirt: '#1f4d6b' },
-  { name: 'Putri', skin: '#eab98c', shirt: '#8a5fb0' },
-  { name: 'Adipati', skin: '#f2d0a8', shirt: '#b07830' },
+  { name: 'Mia', skin: '#f0c8a0', shirt: '#ff8fb8' },
+  { name: 'Leo', skin: '#d9a06b', shirt: '#7ec8e3' },
+  { name: 'Zoe', skin: '#eab98c', shirt: '#7ec8a9' },
+  { name: 'Max', skin: '#f2d0a8', shirt: '#ffd166' },
+  { name: 'Lily', skin: '#e8b88a', shirt: '#c9a0dc' },
 ];
 
 export function spawnOrder(world) {
@@ -158,7 +158,7 @@ export function tick(world, dt) {
   const wasRush = world.rush;
   world.rush = world.timeLeft <= RUSH_AT_SECONDS_LEFT && world.timeLeft > 0;
   if (world.rush && !wasRush) {
-    world.flash = 'JAM RAMAI! pesanan dobel koin';
+    world.flash = 'RUSH HOUR! double coins';
     world.flashAt = world.elapsed;
   }
 
@@ -189,7 +189,7 @@ export function tick(world, dt) {
       world.plate = new Set(world.orders[world.selectedOrder]?.added ?? []);
       if (world.missed >= MAX_MISSED) {
         world.state = 'over';
-        world.overReason = '3 tamu pulang marah — dapur tutup lebih awal.';
+        world.overReason = '3 customers left angry — the parlor closed early.';
         return;
       }
     }
@@ -205,6 +205,6 @@ export function tick(world, dt) {
 
   if (world.timeLeft <= 0) {
     world.state = 'over';
-    world.overReason = 'Shift selesai — lampu istana dipadamkan.';
+    world.overReason = 'Shift over — the parlor lights go out.';
   }
 }

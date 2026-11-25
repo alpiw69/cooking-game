@@ -1,7 +1,7 @@
 // shots.js — the screenshot scenes behind ?shot=play|rush|start|end.
 // Each one plays the real rules forward from a fresh world with a simple
-// autopilot (serve the most urgent ticket, start the wok first, then fill
-// the plate while it cooks), so the frame is what real play looks like and
+// autopilot (serve the most urgent ticket, start the freezer first, then fill
+// the plate while it scoops), so the frame is what real play looks like and
 // the same seed always gives the same frame. No values are faked: the
 // autopilot only calls the same functions a player's clicks call.
 
@@ -74,7 +74,7 @@ export function stageShot(name, seed) {
       tick(world, STEP);
     }
     world.state = 'over';
-    if (!world.overReason) world.overReason = 'Shift selesai — lampu istana dipadamkan.';
+    if (!world.overReason) world.overReason = 'Shift over — the parlor lights go out.';
     return world;
   }
   const target = name === 'rush' ? SHIFT_SECONDS - 24 : 55;
@@ -105,7 +105,7 @@ export function stageShot(name, seed) {
     finishPlate(world);
   } else {
     // Mid-service: a full board, the most urgent ticket half-built,
-    // the wok already going.
+    // the freezer already going.
     while (world.orders.length < 3 && world.state === 'playing') spawnOrder(world);
     let urgent = 0;
     for (let i = 1; i < world.orders.length; i++) {
